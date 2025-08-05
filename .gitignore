@@ -1,0 +1,7 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+data-raw/models.csv
+data-raw/fails.csv
+data-raw/drives.csv

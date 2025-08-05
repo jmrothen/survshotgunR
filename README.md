@@ -1,0 +1,25 @@
+
+# survshotgunR
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of survshotgunR is to ...
+
+## Installation
+
+You can install the development version of survshotgunR like so:
+
+``` r
+# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+``` r
+library(survshotgunR)
+## basic example code
+```
+

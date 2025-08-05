@@ -1,0 +1,524 @@
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// helper function for max of a set of ints
+R_xlen_t max_len(IntegerVector vars){
+  int n = vars.size();
+  int top_size;
+
+  if(n==0){
+    top_size=0;
+  }else{
+    top_size = vars[0];
+    for (int i=1; i<n; i++){
+      if(vars[i] > top_size){
+        top_size = vars[i];
+      }
+    }
+  }
+  return top_size;
+}
+
+
+///// ERLANG DIST /////
+
+// PDF
+double derlang_raw(double x, double k, double l, bool log=false) {
+  double f;
+
+  if(x < 0){
+    f = log ? R_NegInf : 0.0;
+  }else{
+    double density = std::pow(l,k) * std::pow(x, k-1) * std::exp(-l * x) / std::tgamma(k);
+    f = log ? std::log(density) : density;
+  }
+  return f;
+}
+
+// CDF
+double perlang_raw(double x, int k, double l, bool log=false) {
+  double F;
+
+  if(x < 0){
+    F = log ? R_NegInf : 0.0;
+  }else{
+
+    double lambda_x = l*x;
+    double s = 0;
+    for(int j=0; j<k; j++){
+      double term = std::pow(l*x, j) / std::tgamma(j+1.0) ;
+      s += term;
+    }
+    double p = 1.0 - std::exp(-lambda_x) * s;
+    if(p<1e-15)p=1e-15;   //clamp??
+    F = log ? std::log(p): p;
+  }
+  return F;
+}
+
+// [[Rcpp::export]]
+NumericVector derlang(
+  NumericVector x,
+  NumericVector k,
+  NumericVector l,
+  bool log=false
+){
+  int xs = x.size();
+  int ks = k.size();
+  int ls = l.size();
+  const R_xlen_t n = max_len({xs,ks,ls});
+
+  NumericVector x2 = Rcpp::rep_len(x, n);
+  NumericVector k2 = Rcpp::rep_len(k, n);
+  NumericVector l2 = Rcpp::rep_len(l, n);
+  NumericVector f(n);
+
+  for(int i=0; i<n; i++){
+    f[i] = derlang_raw(x2[i], k2[i], l2[i], log);
+  }
+
+  return f;
+}
+
+// [[Rcpp::export]]
+NumericVector perlang(
+    NumericVector x,
+    NumericVector k,
+    NumericVector l,
+    bool log=false
+){
+  int xs = x.size();
+  int ks = k.size();
+  int ls = l.size();
+  const R_xlen_t n = max_len({xs,ks,ls});
+
+  NumericVector x2 = Rcpp::rep_len(x, n);
+  NumericVector k2 = Rcpp::rep_len(k, n);
+  NumericVector l2 = Rcpp::rep_len(l, n);
+  NumericVector F(n);
+
+  for(int i=0; i<n; i++){
+    F[i] = perlang_raw(x2[i], k2[i], l2[i], log);
+  }
+
+  return F;
+}
+
+///// GAMMA GOMPERTZ //////
+
+// PDF
+double dgamgomp_raw(double x, double b, double s, double beta, bool log=false) {
+  double f;
+  if(x <0){
+    f = log ? R_NegInf : 0.0;
+  }else{
+
+    double bx = b*x;
+    double top = b * s * std::exp(bx) * pow(beta,s);
+    double bot1 = beta - 1 + exp(bx);
+    double bot = pow(bot1,s+1);
+    double frac = top/bot;
+    f = log ? std::log(frac) : frac;
+  }
+  return f;
+}
+
+// CDF
+double pgamgomp_raw(double x, double b, double s, double beta, bool log=false) {
+  double F;
+  if(x <0){
+    F = log ? R_NegInf : 0.0;
+
+  }else{
+    double bx = b*x;
+    double bot = beta-1+std::exp(bx);
+    double test = 1 - (pow(beta,s) / pow(bot,s));
+    F = log ? std::log(test) : test;
+  }
+  return F;
+}
+
+// [[Rcpp::export]]
+NumericVector dgamgomp(
+      NumericVector x,
+      NumericVector b,
+      NumericVector s,
+      NumericVector beta,
+      bool log=false
+  ){
+    int xs = x.size();
+    int bs = b.size();
+    int ss = s.size();
+    int betas = beta.size();
+    const R_xlen_t n = max_len({xs,bs,ss,betas});
+
+    NumericVector x2 =    Rcpp::rep_len(x, n);
+    NumericVector b2 =    Rcpp::rep_len(b, n);
+    NumericVector s2 =    Rcpp::rep_len(s, n);
+    NumericVector beta2 = Rcpp::rep_len(beta, n);
+
+    NumericVector f(n);
+
+    for(int i=0; i<n; i++){
+      f[i] = dgamgomp_raw(x2[i], b2[i], s2[i], beta2[i], log);
+    }
+
+    return f;
+  }
+
+// [[Rcpp::export]]
+NumericVector pgamgomp(
+    NumericVector x,
+    NumericVector b,
+    NumericVector s,
+    NumericVector beta,
+    bool log=false
+){
+  int xs = x.size();
+  int bs = b.size();
+  int ss = s.size();
+  int betas = beta.size();
+  const R_xlen_t n = max_len({xs,bs,ss,betas});
+
+  NumericVector x2 =    Rcpp::rep_len(x, n);
+  NumericVector b2 =    Rcpp::rep_len(b, n);
+  NumericVector s2 =    Rcpp::rep_len(s, n);
+  NumericVector beta2 = Rcpp::rep_len(beta, n);
+
+  NumericVector F(n);
+
+  for(int i=0; i<n; i++){
+    F[i] = pgamgomp_raw(x2[i], b2[i], s2[i], beta2[i], log);
+  }
+
+  return F;
+}
+
+
+///// LOG CAUCHY //////
+
+// PDF
+double dlogcauchy_raw(double x, double mu, double sigma, bool log=false) {
+  double f;
+  if(x <=0){
+    f = log ? R_NegInf : 0.0;
+  }else{
+  const double pi = 3.14159265358979323846;
+  double term1 = sigma / (x * pi);
+  double term2 = std::log(x) - mu;
+  double term3 = std::pow(term2,2) + std::pow(sigma,2);
+  double term = term1 / term3;
+    f = log ? std::log(term) : term;
+  }
+  return f;
+}
+
+// CDF
+double plogcauchy_raw(double x, double mu, double sigma, bool log=false) {
+  double F;
+  if(x <=0){
+    F = log ? R_NegInf : 0.0;
+  }else{
+    const double pi = 3.14159265358979323846;
+    double norm = (std::log(x) - mu)/sigma;
+    double term = .5 + (std::atan(norm) / pi);
+    F = log ? std::log(term) : term;
+  }
+  return F;
+}
+
+// [[Rcpp::export]]
+NumericVector dlogcauchy(
+    NumericVector x,
+    NumericVector mu,
+    NumericVector sigma,
+    bool log=false
+){
+  int xs = x.size();
+  int ms = mu.size();
+  int ss = sigma.size();
+  const R_xlen_t n = max_len({xs,ms,ss});
+
+  NumericVector x2 =    Rcpp::rep_len(x, n);
+  NumericVector m2 =    Rcpp::rep_len(mu, n);
+  NumericVector s2 =    Rcpp::rep_len(sigma, n);
+
+  NumericVector f(n);
+
+  for(int i=0; i<n; i++){
+    f[i] = dlogcauchy_raw(x2[i], m2[i], s2[i], log);
+  }
+
+  return f;
+}
+
+// [[Rcpp::export]]
+NumericVector plogcauchy(
+    NumericVector x,
+    NumericVector mu,
+    NumericVector sigma,
+    bool log=false
+){
+  int xs = x.size();
+  int ms = mu.size();
+  int ss = sigma.size();
+  const R_xlen_t n = max_len({xs,ms,ss});
+
+  NumericVector x2 =    Rcpp::rep_len(x, n);
+  NumericVector m2 =    Rcpp::rep_len(mu, n);
+  NumericVector s2 =    Rcpp::rep_len(sigma, n);
+
+  NumericVector F(n);
+
+  for(int i=0; i<n; i++){
+    F[i] = plogcauchy_raw(x2[i], m2[i], s2[i], log);
+  }
+
+  return F;
+}
+
+
+/////// Hypertabastic Dist
+
+// helper functions
+double sech(double x) {
+  return 1.0 / std::cosh(x);
+}
+
+double coth(double x) {
+  return std::cosh(x) / std::sinh(x);
+}
+
+double csch(double x) {
+  return 1.0 / std::sinh(x);
+}
+
+// PDF
+double dhypertab_raw(double x, double a, double b, bool log=false) {
+  double f;
+  if(x <=0){
+    f = log ? R_NegInf : 0.0;
+  }else{
+    double wt = a*(1 - pow(x, b) * coth(pow(x, b)))/b;
+    double chunk_a = a*pow(x,(2*b)-1)*pow(csch(pow(x, b)),2) ;
+    double chunk_b = a*pow(x, b-1) * coth(pow(x,b));
+    double chunk_c = sech(wt) * tanh(wt) * (chunk_a - chunk_b);
+    f = log ? std::log(chunk_c) : chunk_c;
+  }
+  return f;
+}
+
+// CDF
+double phypertab_raw(double x, double a, double b, bool log=false) {
+  double F;
+  if(x <=0){
+    F = log ? R_NegInf : 0.0;
+  }else{
+    double xb = pow(x,b);
+    double term1 = a * (1 - xb * coth(xb)) / b;
+    double term2 = 1 - sech(term1);
+    F = log ? std::log(term2) : term2;
+  }
+  return F;
+}
+
+// [[Rcpp::export]]
+NumericVector dhypertab(
+    NumericVector x,
+    NumericVector a,
+    NumericVector b,
+    bool log=false
+){
+  int xs = x.size();
+  int as = a.size();
+  int bs = b.size();
+  const R_xlen_t n = max_len({xs,as,bs});
+
+  NumericVector x2 =    Rcpp::rep_len(x, n);
+  NumericVector a2 =    Rcpp::rep_len(a, n);
+  NumericVector b2 =    Rcpp::rep_len(b, n);
+
+  NumericVector f(n);
+
+  for(int i=0; i<n; i++){
+    f[i] = dhypertab_raw(x2[i], a2[i], b2[i], log);
+  }
+
+  return f;
+}
+
+// [[Rcpp::export]]
+NumericVector phypertab(
+    NumericVector x,
+    NumericVector a,
+    NumericVector b,
+    bool log=false
+){
+  int xs = x.size();
+  int as = a.size();
+  int bs = b.size();
+  const R_xlen_t n = max_len({xs,as,bs});
+
+  NumericVector x2 =    Rcpp::rep_len(x, n);
+  NumericVector a2 =    Rcpp::rep_len(a, n);
+  NumericVector b2 =    Rcpp::rep_len(b, n);
+
+  NumericVector F(n);
+
+  for(int i=0; i<n; i++){
+    F[i] = phypertab_raw(x2[i], a2[i], b2[i], log);
+  }
+
+  return F;
+}
+
+///// INVERSE LINDLEY //////
+
+// PDF
+double dinvlind_raw(double x, double theta, bool log=false) {
+  double f;
+  if(x <=0){
+    f = log ? R_NegInf : 0.0;
+  }else{
+    double term = pow(theta,2)/(1+theta) * ((1+x)/pow(x,3)) * std::exp(-theta/x);
+    f = log ? std::log(term) : term;
+  }
+  return f;
+}
+
+// CDF
+double pinvlind_raw(double x, double theta, bool log=false) {
+  double F;
+  if(x <=0){
+    F = log ? R_NegInf : 0.0;
+  }else{
+    double term = (1 + ((theta/(1+theta))/x)) * std::exp(-theta/x);
+    F = log ? std::log(term) : term;
+  }
+  return F;
+}
+
+// [[Rcpp::export]]
+NumericVector dinvlind(
+    NumericVector x,
+    NumericVector theta,
+    bool log=false
+){
+  int xs = x.size();
+  int ts = theta.size();
+  const R_xlen_t n = max_len({xs,ts});
+
+  NumericVector x2 =    Rcpp::rep_len(x, n);
+  NumericVector t2 =    Rcpp::rep_len(theta, n);
+
+
+  NumericVector f(n);
+
+  for(int i=0; i<n; i++){
+    f[i] = dinvlind_raw(x2[i], t2[i],  log);
+  }
+
+  return f;
+}
+
+// [[Rcpp::export]]
+NumericVector pinvlind(
+    NumericVector x,
+    NumericVector theta,
+    bool log=false
+){
+  int xs = x.size();
+  int ts = theta.size();
+  const R_xlen_t n = max_len({xs,ts});
+
+  NumericVector x2 =    Rcpp::rep_len(x, n);
+  NumericVector t2 =    Rcpp::rep_len(theta, n);
+
+  NumericVector F(n);
+
+  for(int i=0; i<n; i++){
+    F[i] = pinvlind_raw(x2[i], t2[i], log);
+  }
+
+  return F;
+}
+
+
+
+/*** R
+# old wrappers that have been deprecated
+
+# perlang <- function(q, k, l, lower.tail=T, log.p=F){
+#   mapply(function(qq, kk, ll) {
+#     p <- perlang_raw(qq,kk,ll,F)
+#     if(!lower.tail){p <- 1-p}
+#     if(log.p){p <- log(p)}
+#     p
+#   }, q,k,l)
+# }
+#
+# pgamgomp <- function(q,b,s,beta, lower.tail=T, log.p=F){
+#   mapply(function(qq, bb, ss, BB) {
+#     p <- pgamgomp_raw(qq,bb,ss,BB,F)
+#     if(!lower.tail){p <- 1-p}
+#     if(log.p){p <- log(p)}
+#     p
+#   }, q, b, s, beta)
+# }
+#
+# plogcauchy <- function(q, mu, sigma, lower.tail=T, log.p=F){
+#   mapply(function(qq, mm, ss) {
+#     p <- plogcauchy_raw(qq,mm,ss,F)
+#     if(!lower.tail){p <- 1-p}
+#     if(log.p){p <- log(p)}
+#     p
+#   }, q, mu, sigma)
+# }
+#
+# phypertab <- function(q, a, b, lower.tail=T, log.p=F){
+#   mapply(function(qq, aa, bb) {
+#     p <- phypertab_raw(qq,aa,bb,F)
+#     if(!lower.tail){p <- 1-p}
+#     if(log.p){p <- log(p)}
+#     p
+#   }, q, a, b)
+# }
+#
+# pinvlind <- function(q, theta, lower.tail=T, log.p=F){
+#   mapply(function(qq, tt) {
+#     p <- pinvlind_raw(qq,tt,F)
+#     if(!lower.tail){p <- 1-p}
+#     if(log.p){p <- log(p)}
+#     p
+#   }, q, theta)
+# }
+
+
+# perlang_v2    <- Vectorize(perlang_raw)
+# pgamgomp_v2   <- Vectorize(pgamgomp_raw)
+# plogcauchy_v2 <- Vectorize(plogcauchy_raw)
+# phypertab_v2  <- Vectorize(phypertab_raw)
+# pinvlind_v2   <- Vectorize(pinvlind_raw)
+
+
+# derlang_raw(1,1,1)
+# derlang(1,1,1)         # should be 0.3678794
+# perlang_raw(1,1,1)     # should be 0.6321206
+# perlang(1,1,1)         # should be 0.6321206
+
+# dgamgomp(0,.4,1,3)     # should be ~ 0.1333333
+# pgamgomp_raw(1,.4,1,3) # should be ~ 0.1408503
+# pgamgomp(1,.4,1,3)     # should be ~ 0.1408503
+#
+# dlogcauchy(1,1,1)      # should be ~ 0.1591549
+# plogcauchy_raw(1,1,1)  # should be .25
+# plogcauchy(1,1,1)      # should be .25
+#
+# dhypertab(1,1,1)       # should be .1701686
+# phypertab_raw(1,1,1)   # should be .04707175
+# phypertab(1,1,1)       # should be .04707175
+#
+# dinvlind(1,1)          # .3678794
+# pinvlind_raw(1,1)      # .5518192
+# pinvlind(1,1)          # .5518192
+*/

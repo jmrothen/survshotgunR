@@ -1,0 +1,9 @@
+Use these things for package development
+
+devtools: check, build, document, load_all
+    Maybes: reload, test (relies on testthat)
+
+Rcpp: compileAttributes    (basically imports the cpp functions)
+
+
+usethis: use_data, use_data_raw
