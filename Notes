@@ -7,3 +7,8 @@ Rcpp: compileAttributes    (basically imports the cpp functions)
 
 
 usethis: use_data, use_data_raw
+
+
+
+
+TODO: FIX THE FACT UR P-FUNCS DON'T HAVE 'log.p' and 'lower.tail'

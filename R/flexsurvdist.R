@@ -1,8 +1,11 @@
-library(dplyr)
-library(survival)
-library(flexsurv)
-
+# require(dplyr)
+# require(survival)
+# require(flexsurv)
+# require(VGAM)
+# require(extraDistr)
 # Rcpp::sourceCpp('dist.cpp')
+source('R/RcppExports.R')
+
 
 
 #### Custom distribution shell
@@ -20,18 +23,7 @@ if(F){
   )
 }
 
-
-
-
-
-
-
-
-
-
-
 ### Beta Prime
-# extraDistr has as betapr
 flexsurv_betapr <- list(
   name = 'betapr',
   pars= c('shape1','shape2','scale'),
@@ -44,8 +36,7 @@ flexsurv_betapr <- list(
   fullname='beta_prime'
 )
 
-### Birnbaum - Saunders
-# extraDistr has this as fatigue
+### Birnbaum - Saunders, specified as fatigue in extraDistr
 flexsurv_fatigue <- list(
   name='fatigue',
   pars = c('alpha','beta'), # 'mu' dropped
@@ -58,9 +49,7 @@ flexsurv_fatigue <- list(
   fullname='birnbaum_saunders'
 )
 
-
-
-# Singh Madalla / burr t12
+### Singh Madalla / burr t12
 flexsurv_sinmad  <- list(
   name='sinmad',
   pars = c('scale','shape1.a','shape3.q'),
@@ -73,11 +62,7 @@ flexsurv_sinmad  <- list(
   fullname='singh_maddala'
 )
 
-
-
-
-### CAUCHY (will suck)
-# basic stats package has,
+### CAUCHY
 flexsurv_cauchy <- list(
   name='cauchy',
   pars= c('location','scale'),
@@ -91,7 +76,6 @@ flexsurv_cauchy <- list(
 )
 
 ### CHI SQUARED
-# basic inclusion
 flexsurv_chisq <- list(
   name='chisq',
   pars=c('df'),
@@ -104,7 +88,7 @@ flexsurv_chisq <- list(
   fullname='chi_squared'
 )
 
-# non central
+### non central chi squared
 flexsurv_ncchisq <- list(
   name='chisq',
   pars=c('df','ncp'),
@@ -117,10 +101,7 @@ flexsurv_ncchisq <- list(
   fullname='non_central_chi_squared'
 )
 
-
-
 ### Dagum
-# from vgam
 flexsurv_dagum <- list(
   name='dagum',
   pars= c('scale','shape1.a','shape2.p'),
@@ -133,12 +114,7 @@ flexsurv_dagum <- list(
   fullname='dagum'
 )
 
-
-
-
-
 ### Exponential logarithmic
-# VGAM
 logit <- function(p){log(p/(1-p))}
 inv_logit <- function(x){return(1/(1+exp(-x)))}
 flexsurv_explog <- list(
@@ -153,13 +129,12 @@ flexsurv_explog <- list(
   fullname='exponential_logarithmic'
 )
 
-
 ### Extreme value (generalized)
 flexsurv_extval <- list(
   name='gev',
   pars = c('mu','sigma','xi'),
   location='mu',
-  transforms= c(identity, log, log),  # trying to make xi log now, as the bounding is bad if <=0
+  transforms= c(identity, log, log),  # trying to make xi use log now, as the bounding is bad if <=0
   inv.transforms = c(identity, exp, exp),
   inits=function(t){c(1,1,1)},
   d=extraDistr::dgev,
@@ -167,8 +142,7 @@ flexsurv_extval <- list(
   fullname='generalized_extreme_value'
 )
 
-
-### F distrib (idk)
+### F distribution
 flexsurv_f <- list(
   name='f',
   pars = c('df1','df2'),
@@ -181,7 +155,7 @@ flexsurv_f <- list(
   fullname='f'
 )
 
-#noncentral
+### noncentral F
 flexsurv_ncf <- list(
   name='f',
   pars = c('df1','df2', 'ncp'),
@@ -193,8 +167,6 @@ flexsurv_ncf <- list(
   p=pf,
   fullname='noncentral_f'
 )
-
-
 
 ### folded normal?
 flexsurv_fnorm <- list(
@@ -209,7 +181,6 @@ flexsurv_fnorm <- list(
   fullname='folded_normal'
 )
 
-
 ### Frechet
 flexsurv_frech <- list(
   name='frechet',
@@ -222,8 +193,6 @@ flexsurv_frech <- list(
   p= extraDistr::pfrechet,
   fullname='frechet'
 )
-
-
 
 ### Gamma-Gompertz
 flexsurv_gamgomp <- list(
@@ -238,12 +207,7 @@ flexsurv_gamgomp <- list(
   fullname='gamma_gompertz'
 )
 
-
-
-
-
 ### Gumbel (basically log weibull)
-# vgam extraDistr
 flexsurv_gumbel <- list(
   name='gumbel',
   pars=c('mu','sigma'),
@@ -256,10 +220,7 @@ flexsurv_gumbel <- list(
   fullname='gumbel'
 )
 
-
-
-### Inv Chi-sq
-# extradistr
+### Inverse Chi-squared
 flexsurv_invchisq <- list(
   name='invchisq',
   pars=c('nu'),
@@ -272,8 +233,7 @@ flexsurv_invchisq <- list(
   fullname='inverse_chi_squared'
 )
 
-
-# scaled version too
+# scaled version inverse Chi Squared
 flexsurv_sinvchisq <- list(
   name='invchisq',
   pars=c('nu','tau'),
@@ -287,8 +247,7 @@ flexsurv_sinvchisq <- list(
 )
 
 
-### Inv Gamma
-# extradistr
+### Inverse Gamma
 flexsurv_invgam <- list(
   name='invgamma',
   pars=c('alpha','beta'),
@@ -301,9 +260,7 @@ flexsurv_invgam <- list(
   fullname='inverse_gamma'
 )
 
-
-### Inv Gaussian
-# VGAM
+### Inverse Gaussian
 flexsurv_invgaus <- list(
   name='inv.gaussian',
   pars=c('mu','lambda'),
@@ -316,9 +273,7 @@ flexsurv_invgaus <- list(
   fullname='inverse_gaussian'
 )
 
-
 ### Laplace
-# extraDistr
 flexsurv_laplace <- list(
   name='laplace',
   pars=c('mu','sigma'),
@@ -331,9 +286,7 @@ flexsurv_laplace <- list(
   fullname='laplace'
 )
 
-
-### Levy?
-# VGAM
+### Levy
 flexsurv_levy <- list(
   name='levy',
   pars=c('location','scale'),
@@ -346,10 +299,7 @@ flexsurv_levy <- list(
   fullname='levy'
 )
 
-
 ### Log cauchy
-# could be interesting
-
 flexsurv_logcauchy <- list(
   name='logcauchy',
   pars=c('mu','sigma'),
@@ -361,7 +311,6 @@ flexsurv_logcauchy <- list(
   p=plogcauchy,
   fullname='log_cauchy'
 )
-
 
 ### Lomax
 flexsurv_lomax <- list(
@@ -376,7 +325,6 @@ flexsurv_lomax <- list(
   fullname='lomax'
 )
 
-
 ### nakagami
 flexsurv_nakagami <- list(
   name='naka',
@@ -390,8 +338,7 @@ flexsurv_nakagami <- list(
   fullname='nakagami'
 )
 
-
-### PARETO, THERES A FEW HERE
+### PARETO I , there's a few different versions of Pareto, all of which have almost never worked in testing
 flexsurv_pareto1 <- list(
   name='paretoI',
   pars=c('scale','shape'),
@@ -404,6 +351,7 @@ flexsurv_pareto1 <- list(
   fullname='pareto_type_1'
 )
 
+### Pareto II
 flexsurv_pareto2 <- list(
   name='paretoII',
   pars=c('location','scale','shape'),
@@ -416,6 +364,7 @@ flexsurv_pareto2 <- list(
   fullname='pareto_type_2'
 )
 
+### Pareto III
 flexsurv_pareto3 <- list(
   name='paretoIII',
   pars=c('location','scale','inequality'),
@@ -428,6 +377,7 @@ flexsurv_pareto3 <- list(
   fullname='pareto_type_3'
 )
 
+### Pareto IV
 flexsurv_pareto4 <- list(
   name='paretoIV',
   pars=c('location','scale','inequality','shape'),
@@ -440,6 +390,7 @@ flexsurv_pareto4 <- list(
   fullname='pareto_type_4'
 )
 
+### Feller-Pareto (basically Pareto type five)
 flexsurv_fpareto <- list(
   name='fpareto',
   pars=c('min','shape1','shape2','shape3','rate'),
@@ -452,10 +403,7 @@ flexsurv_fpareto <- list(
   fullname='feller_pareto'
 )
 
-
-
-
-
+### Truncated Pareto
 flexsurv_tpareto <- list(
   name='truncpareto',
   pars=c('lower','upper','shape'),
@@ -467,7 +415,6 @@ flexsurv_tpareto <- list(
   p=VGAM::ptruncpareto,
   fullname='truncated_pareto'
 )
-
 
 ### Rayleigh
 flexsurv_rayleigh <- list(
@@ -495,7 +442,6 @@ flexsurv_rice <- list(
   fullname='rice'
 )
 
-
 ### Shifted Gompertz
 flexsurv_sgomp <- list(
   name='sgomp',
@@ -508,7 +454,6 @@ flexsurv_sgomp <- list(
   p=extraDistr::psgomp,
   fullname='shifted_gompertz'
 )
-
 
 ### Type-2 Gumbel
 flexsurv_gumbelII <- list(
@@ -523,7 +468,6 @@ flexsurv_gumbelII <- list(
   fullname='gumbel_type_2'
 )
 
-
 # hyper tabastic
 flexsurv_hypertab <- list(
   name='hypertab',
@@ -537,7 +481,7 @@ flexsurv_hypertab <- list(
   fullname='hypertabastic'
 )
 
-# lindley distribution
+### Lindley distribution
 flexsurv_lindley <- list(
   name= 'lind',
   pars=c('theta'),
@@ -550,9 +494,7 @@ flexsurv_lindley <- list(
   fullname='lindley'
 )
 
-
-
-# inverse lindley
+### inverse Lindley
 flexsurv_invlind <- list(
   name= 'invlind',
   pars=c('theta'),
@@ -565,152 +507,19 @@ flexsurv_invlind <- list(
   fullname='inverse_lindley'
 )
 
+dist_list <- function(){
+  return(
+    list(
+      flexsurv_betapr, flexsurv_fatigue, flexsurv_sinmad, flexsurv_cauchy, flexsurv_chisq,
+      flexsurv_ncchisq, flexsurv_dagum,  flexsurv_explog, flexsurv_extval, flexsurv_f,
+      flexsurv_ncf, flexsurv_fnorm,flexsurv_frech, flexsurv_gamgomp, flexsurv_gumbel, flexsurv_invchisq,
+      flexsurv_sinvchisq, flexsurv_invgam, flexsurv_invgaus, flexsurv_laplace, flexsurv_levy, flexsurv_logcauchy,
+      flexsurv_lomax, flexsurv_nakagami, flexsurv_pareto1, flexsurv_pareto2, flexsurv_pareto3, flexsurv_pareto4,
+      flexsurv_fpareto, flexsurv_tpareto, flexsurv_rayleigh, flexsurv_rice, flexsurv_sgomp, flexsurv_gumbelII,
+      flexsurv_hypertab,flexsurv_lindley, flexsurv_invlind
 
-
-surv_shotgun <- function(formula, data=NA, skip=c('default'), dump_models =F, progress=T, warn=F){
-  require(flexsurv)
-  require(dplyr)
-  require(actuar)
-  require(VGAM)
-  require(extraDistr)
-  require(tictoc)
-
-
-  if(length(skip)==1 & skip[1]=='default'){
-    skip <- c('genf.orig', 'gengamma.orig', 'erlang', 'truncpareto', 'chisq','non_central_chi_squared', 'exponential','lognormal')
-  }
-
-
-  message("Loading shotgun...")
-  tic("Kapow")
-
-  vars <- all.vars(formula)
-  in_global <- sapply(vars, exists, envir=.GlobalEnv)
-  data_req <- F
-  if(!all(in_global)){
-    if(is.data.frame(data)){
-      if(all(vars %in% names(data))){
-        data_req <- T
-      }else{
-        message("it broke")
-        stop("you")
-      }
-    }else{
-      stop("not in the data")
-    }
-  }
-
-  my_dist_list <- list(
-    flexsurv_betapr, flexsurv_fatigue, flexsurv_sinmad, flexsurv_cauchy, flexsurv_chisq,
-    flexsurv_ncchisq, flexsurv_dagum,  flexsurv_explog, flexsurv_extval, flexsurv_f,
-    flexsurv_ncf, flexsurv_fnorm,flexsurv_frech, flexsurv_gamgomp, flexsurv_gumbel, flexsurv_invchisq,
-    flexsurv_sinvchisq, flexsurv_invgam, flexsurv_invgaus, flexsurv_laplace, flexsurv_levy, flexsurv_logcauchy,
-    flexsurv_lomax, flexsurv_nakagami, flexsurv_pareto1, flexsurv_pareto2, flexsurv_pareto3, flexsurv_pareto4,
-    flexsurv_fpareto, flexsurv_tpareto, flexsurv_rayleigh, flexsurv_rice, flexsurv_sgomp, flexsurv_gumbelII,
-    flexsurv_hypertab,flexsurv_lindley, flexsurv_invlind
-    # flexsurv_pareto, #flexsurv_burr,#flexsurv_erlang,
-  )
-
-  dist_list <- c(flexsurv.dists, my_dist_list)
-
-  dist_summary <- data.frame(
-    dist_name = '1',
-    dist_ran = T,
-    aic = 1,
-    bic = 1,
-    loglik = 1
-  )[-1,]
-
-  iter <- 1
-  for(i in dist_list){
-    if(i$name %in% skip | coalesce(i$fullname, i$name) %in% skip | names(dist_list)[iter] %in% skip){
-      iter <- iter+1
-      next
-    }
-
-    current_dist <- coalesce(i$fullname, i$name)
-    if(progress){
-      message('------------------------------------------------------------------------')
-      message(current_dist)
-      tic(current_dist)
-    }
-
-    dist_success<- F
-    current_aic <- NA
-    current_bic <- NA
-    current_ll <- NA
-
-    tryCatch({
-        withCallingHandlers({
-          if(data_req){
-            flexsurvreg(formula, dist=i, data=data, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
-          }else{
-            flexsurvreg(formula, dist=i, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
-          }
-          current_aic <- AIC(current_model)
-          current_bic <- BIC(current_model)
-          current_ll <- current_model$loglik
-
-
-
-          dist_success<-T
-          },
-          warning=function(w){
-            if(warn){message(paste('Warning in', current_dist,'model :',w))}
-            invokeRestart('muffleWarning')
-          })},
-        error=function(e){
-          message(paste("Error in", current_dist,"model :",e))
-        }
+      ### Removed for the time being
+      # flexsurv_erlang,
     )
-
-    dist_summary %>%
-      add_row(
-        dist_name = current_dist, dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
-      ) -> dist_summary
-
-    if(dump_models & dist_success){
-      # flexsurv shotgun
-      assign(paste('fssg_',current_dist,sep='',collapse=''), current_model, envir = .GlobalEnv)
-    }
-
-    toc(quiet =T)$callback_msg %>% message()
-    iter = iter+1
-  }
-
-
-  gc()
-  message('------------------------------------------------------------------------')
-  message('Final Summary!')
-
-
-  dist_summary %>% filter(!is.na(aic)) %>% filter(aic== min(aic)) %>% select(dist_name) %>% pull() -> best_aic
-  dist_summary %>% filter(!is.na(aic)) %>% filter(bic== min(bic)) %>% select(dist_name) %>% pull() -> best_bic
-  dist_summary %>% filter(!is.na(aic)) %>% filter(loglik== max(loglik)) %>% select(dist_name) %>% pull() -> best_ll
-
-  message(paste('Model with best AIC:',best_aic))
-  message(paste('Model with best BIC:',best_bic))
-  message(paste('Model with best Log Likelihood:',best_ll))
-  toc(quiet=T)$callback_msg %>% message()
-  return(dist_summary)
-}
-
-
-
-
-
-
-# raw testing from legacy testing
-if(F){
-
-
-  # quick tests
-  formula_test <- Surv(time, status)~1
-  surv_shotgun(formula_test, data=aml, dump_models=T, warn = T) -> shotgun_summary
-  shotgun_summary %>% arrange(aic, bic, desc(loglik))
-
-  # breaks my custom distribs :c
-  formula_test2 <- Surv(time,status)~ x
-  surv_shotgun(formula_test2, data=aml, dump_models=T, warn = T) -> shotgun_summary2
-  shotgun_summary2 %>% arrange(aic, bic, desc(loglik))
+  )
 }
