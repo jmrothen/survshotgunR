@@ -12,11 +12,13 @@ LinkingTo:
     Rcpp
 Imports: 
     actuar,
+    dplyr,
     extraDistr,
     flexsurv,
     magrittr,
     Rcpp,
-    survival,
+    stats,
+    tictoc,
     VGAM
 Suggests: 
     testthat (>= 3.0.0)

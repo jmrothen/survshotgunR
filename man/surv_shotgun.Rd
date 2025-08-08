@@ -13,6 +13,28 @@ surv_shotgun(
   warn = F
 )
 }
+\arguments{
+\item{formula}{Formula. Should be a survival formula, with a Surv object on the left hand side.}
+
+\item{data}{If your formula needs a dataset, provide that here.}
+
+\item{skip}{Vector. If you want to skip any specific models, you can add their names here. By default, some of the repetitive or incredibly niche models are skipped.}
+
+\item{dump_models}{Logical. If TRUE, each successful model created will be loaded into memory as fssg_<model_name>}
+
+\item{progress}{Logical. Want progress updates?}
+
+\item{warn}{Logical. If TRUE, also prints any warnings that appear.}
+}
+\value{
+Data frame summarizing each model, and some general goodness of fit measures.
+}
 \description{
 Shotgun
+}
+\examples{
+library(survival)
+surv_shotgun(Surv(time, status)~1, data=aml, dump_models=TRUE, warn = TRUE)
+
+
 }

@@ -1,8 +1,29 @@
-source('R/flex_surv_dist.R')
+# source('R/flex_surv_dist.R')
 
 #' Shotgun
-surv_shotgun <- function(formula, data=NA, skip=c('default'), dump_models =F, progress=T, warn=F){
-
+#'
+#' @param formula Formula. Should be a survival formula, with a Surv object on the left hand side.
+#' @param data If your formula needs a dataset, provide that here.
+#' @param skip Vector. If you want to skip any specific models, you can add their names here. By default, some of the repetitive or incredibly niche models are skipped.
+#' @param dump_models Logical. If TRUE, each successful model created will be loaded into memory as fssg_<model_name>
+#' @param progress Logical. Want progress updates?
+#' @param warn Logical. If TRUE, also prints any warnings that appear.
+#' @returns Data frame summarizing each model, and some general goodness of fit measures.
+#'
+#' @examples
+#' library(survival)
+#' surv_shotgun(Surv(time, status)~1, data=aml, dump_models=TRUE, warn = TRUE)
+#'
+#'
+#' @export
+surv_shotgun <- function(
+    formula,
+    data=NA,
+    skip=c('default'),
+    dump_models =F,
+    progress=T,
+    warn=F
+){
   # The default shotgun list will exclude the following. Comments describe why
   if(length(skip)==1 & skip[1]=='default'){
     skip <- c(
@@ -35,7 +56,7 @@ surv_shotgun <- function(formula, data=NA, skip=c('default'), dump_models =F, pr
     }
   }
 
-  dist_list <- c(flexsurv.dists, my_dist_list)
+  dist_list <- shotgun_dist_list()
 
   dist_summary <- data.frame(
     dist_name = '1',
@@ -47,12 +68,12 @@ surv_shotgun <- function(formula, data=NA, skip=c('default'), dump_models =F, pr
 
   iter <- 1
   for(i in dist_list){
-    if(i$name %in% skip | coalesce(i$fullname, i$name) %in% skip | names(dist_list)[iter] %in% skip){
+    if(i$name %in% skip | dplyr::coalesce(i$fullname, i$name) %in% skip | names(dist_list)[iter] %in% skip){
       iter <- iter+1
       next
     }
 
-    current_dist <- coalesce(i$fullname, i$name)
+    current_dist <- dplyr::coalesce(i$fullname, i$name)
     if(progress){
       message('------------------------------------------------------------------------')
       message(current_dist)
@@ -67,12 +88,12 @@ surv_shotgun <- function(formula, data=NA, skip=c('default'), dump_models =F, pr
     tryCatch({
       withCallingHandlers({
         if(data_req){
-          flexsurvreg(formula, dist=i, data=data, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
+          flexsurv::flexsurvreg(formula, dist=i, data=data, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
         }else{
-          flexsurvreg(formula, dist=i, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
+          flexsurv::flexsurvreg(formula, dist=i, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
         }
-        current_aic <- AIC(current_model)
-        current_bic <- BIC(current_model)
+        current_aic <- stats::AIC(current_model)
+        current_bic <- stats::BIC(current_model)
         current_ll <- current_model$loglik
 
 
@@ -89,7 +110,7 @@ surv_shotgun <- function(formula, data=NA, skip=c('default'), dump_models =F, pr
     )
 
     dist_summary %>%
-      add_row(
+      dplyr::add_row(
         dist_name = current_dist, dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
       ) -> dist_summary
 
@@ -108,9 +129,9 @@ surv_shotgun <- function(formula, data=NA, skip=c('default'), dump_models =F, pr
   message('Final Summary!')
 
 
-  dist_summary %>% filter(!is.na(aic)) %>% filter(aic== min(aic)) %>% select(dist_name) %>% pull() -> best_aic
-  dist_summary %>% filter(!is.na(aic)) %>% filter(bic== min(bic)) %>% select(dist_name) %>% pull() -> best_bic
-  dist_summary %>% filter(!is.na(aic)) %>% filter(loglik== max(loglik)) %>% select(dist_name) %>% pull() -> best_ll
+  dist_summary %>% dplyr::filter(!is.na(aic)) %>% dplyr::filter(aic== min(aic))       %>% dplyr::select(dist_name) %>% dplyr::pull() -> best_aic
+  dist_summary %>% dplyr::filter(!is.na(aic)) %>% dplyr::filter(bic== min(bic))       %>% dplyr::select(dist_name) %>% dplyr::pull() -> best_bic
+  dist_summary %>% dplyr::filter(!is.na(aic)) %>% dplyr::filter(loglik== max(loglik)) %>% dplyr::select(dist_name) %>% dplyr::pull() -> best_ll
 
   message(paste('Model with best AIC:',best_aic))
   message(paste('Model with best BIC:',best_bic))
@@ -129,10 +150,10 @@ if(F){
   # quick tests
   formula_test <- Surv(time, status)~1
   surv_shotgun(formula_test, data=aml, dump_models=T, warn = T) -> shotgun_summary
-  shotgun_summary %>% arrange(aic, bic, desc(loglik))
+  shotgun_summary %>% dplyr::arrange(aic, bic, desc(loglik))
 
   # breaks my custom distribs :c
   formula_test2 <- Surv(time,status)~ x
   surv_shotgun(formula_test2, data=aml, dump_models=T, warn = T) -> shotgun_summary2
-  shotgun_summary2 %>% arrange(aic, bic, desc(loglik))
+  shotgun_summary2 %>% dplyr::arrange(aic, bic, desc(loglik))
 }
