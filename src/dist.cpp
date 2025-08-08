@@ -36,11 +36,11 @@ double derlang_raw(double x, double k, double l, bool log=false) {
 }
 
 // CDF
-double perlang_raw(double x, int k, double l, bool log=false) {
+double perlang_raw(double x, int k, double l, bool lower_tail=true, bool log_p=false) {
   double F;
 
   if(x < 0){
-    F = log ? R_NegInf : 0.0;
+    F = log_p ? R_NegInf : 0.0;
   }else{
 
     double lambda_x = l*x;
@@ -51,13 +51,14 @@ double perlang_raw(double x, int k, double l, bool log=false) {
     }
     double p = 1.0 - std::exp(-lambda_x) * s;
     if(p<1e-15)p=1e-15;   //clamp??
-    F = log ? std::log(p): p;
+    F = log_p ? std::log(p): p;
+    F = lower_tail ? F : 1-F;
   }
   return F;
 }
 
 // [[Rcpp::export]]
-NumericVector derlang(
+NumericVector derlang_c(
   NumericVector x,
   NumericVector k,
   NumericVector l,
@@ -81,11 +82,12 @@ NumericVector derlang(
 }
 
 // [[Rcpp::export]]
-NumericVector perlang(
+NumericVector perlang_c(
     NumericVector x,
     NumericVector k,
     NumericVector l,
-    bool log=false
+    bool lower_tail=true,
+    bool log_p=false
 ){
   int xs = x.size();
   int ks = k.size();
@@ -98,7 +100,7 @@ NumericVector perlang(
   NumericVector F(n);
 
   for(int i=0; i<n; i++){
-    F[i] = perlang_raw(x2[i], k2[i], l2[i], log);
+    F[i] = perlang_raw(x2[i], k2[i], l2[i], lower_tail, log_p);
   }
 
   return F;
@@ -124,22 +126,23 @@ double dgamgomp_raw(double x, double b, double s, double beta, bool log=false) {
 }
 
 // CDF
-double pgamgomp_raw(double x, double b, double s, double beta, bool log=false) {
+double pgamgomp_raw(double x, double b, double s, double beta, bool lower_tail=true, bool log_p=false) {
   double F;
   if(x <0){
-    F = log ? R_NegInf : 0.0;
+    F = log_p ? R_NegInf : 0.0;
 
   }else{
     double bx = b*x;
     double bot = beta-1+std::exp(bx);
     double test = 1 - (pow(beta,s) / pow(bot,s));
-    F = log ? std::log(test) : test;
+    F = log_p ? std::log(test) : test;
+    F = lower_tail ? F : 1-F;
   }
   return F;
 }
 
 // [[Rcpp::export]]
-NumericVector dgamgomp(
+NumericVector dgamgomp_c(
       NumericVector x,
       NumericVector b,
       NumericVector s,
@@ -167,12 +170,13 @@ NumericVector dgamgomp(
   }
 
 // [[Rcpp::export]]
-NumericVector pgamgomp(
+NumericVector pgamgomp_c(
     NumericVector x,
     NumericVector b,
     NumericVector s,
     NumericVector beta,
-    bool log=false
+    bool lower_tail=true,
+    bool log_p=false
 ){
   int xs = x.size();
   int bs = b.size();
@@ -188,7 +192,7 @@ NumericVector pgamgomp(
   NumericVector F(n);
 
   for(int i=0; i<n; i++){
-    F[i] = pgamgomp_raw(x2[i], b2[i], s2[i], beta2[i], log);
+    F[i] = pgamgomp_raw(x2[i], b2[i], s2[i], beta2[i], lower_tail, log_p);
   }
 
   return F;
@@ -214,21 +218,22 @@ double dlogcauchy_raw(double x, double mu, double sigma, bool log=false) {
 }
 
 // CDF
-double plogcauchy_raw(double x, double mu, double sigma, bool log=false) {
+double plogcauchy_raw(double x, double mu, double sigma, bool lower_tail=true, bool log_p=false) {
   double F;
   if(x <=0){
-    F = log ? R_NegInf : 0.0;
+    F = log_p ? R_NegInf : 0.0;
   }else{
     const double pi = 3.14159265358979323846;
     double norm = (std::log(x) - mu)/sigma;
     double term = .5 + (std::atan(norm) / pi);
-    F = log ? std::log(term) : term;
+    F = log_p ? std::log(term) : term;
+    F = lower_tail ? F : 1-F;
   }
   return F;
 }
 
 // [[Rcpp::export]]
-NumericVector dlogcauchy(
+NumericVector dlogcauchy_c(
     NumericVector x,
     NumericVector mu,
     NumericVector sigma,
@@ -253,11 +258,12 @@ NumericVector dlogcauchy(
 }
 
 // [[Rcpp::export]]
-NumericVector plogcauchy(
+NumericVector plogcauchy_c(
     NumericVector x,
     NumericVector mu,
     NumericVector sigma,
-    bool log=false
+    bool lower_tail=true,
+    bool log_p=false
 ){
   int xs = x.size();
   int ms = mu.size();
@@ -271,7 +277,7 @@ NumericVector plogcauchy(
   NumericVector F(n);
 
   for(int i=0; i<n; i++){
-    F[i] = plogcauchy_raw(x2[i], m2[i], s2[i], log);
+    F[i] = plogcauchy_raw(x2[i], m2[i], s2[i], lower_tail, log_p);
   }
 
   return F;
@@ -309,21 +315,22 @@ double dhypertab_raw(double x, double a, double b, bool log=false) {
 }
 
 // CDF
-double phypertab_raw(double x, double a, double b, bool log=false) {
+double phypertab_raw(double x, double a, double b, bool lower_tail=true, bool log_p=false) {
   double F;
   if(x <=0){
-    F = log ? R_NegInf : 0.0;
+    F = log_p ? R_NegInf : 0.0;
   }else{
     double xb = pow(x,b);
     double term1 = a * (1 - xb * coth(xb)) / b;
     double term2 = 1 - sech(term1);
-    F = log ? std::log(term2) : term2;
+    F = log_p ? std::log(term2) : term2;
+    F = lower_tail ? F : 1-F;
   }
   return F;
 }
 
 // [[Rcpp::export]]
-NumericVector dhypertab(
+NumericVector dhypertab_c(
     NumericVector x,
     NumericVector a,
     NumericVector b,
@@ -348,11 +355,12 @@ NumericVector dhypertab(
 }
 
 // [[Rcpp::export]]
-NumericVector phypertab(
+NumericVector phypertab_c(
     NumericVector x,
     NumericVector a,
     NumericVector b,
-    bool log=false
+    bool lower_tail=true,
+    bool log_p=false
 ){
   int xs = x.size();
   int as = a.size();
@@ -366,7 +374,7 @@ NumericVector phypertab(
   NumericVector F(n);
 
   for(int i=0; i<n; i++){
-    F[i] = phypertab_raw(x2[i], a2[i], b2[i], log);
+    F[i] = phypertab_raw(x2[i], a2[i], b2[i], lower_tail, log_p);
   }
 
   return F;
@@ -387,19 +395,20 @@ double dinvlind_raw(double x, double theta, bool log=false) {
 }
 
 // CDF
-double pinvlind_raw(double x, double theta, bool log=false) {
+double pinvlind_raw(double x, double theta, bool lower_tail=true, bool log_p=false) {
   double F;
   if(x <=0){
-    F = log ? R_NegInf : 0.0;
+    F = log_p ? R_NegInf : 0.0;
   }else{
     double term = (1 + ((theta/(1+theta))/x)) * std::exp(-theta/x);
-    F = log ? std::log(term) : term;
+    F = log_p ? std::log(term) : term;
+    F = lower_tail ? F : 1-F;
   }
   return F;
 }
 
 // [[Rcpp::export]]
-NumericVector dinvlind(
+NumericVector dinvlind_c(
     NumericVector x,
     NumericVector theta,
     bool log=false
@@ -410,8 +419,6 @@ NumericVector dinvlind(
 
   NumericVector x2 =    Rcpp::rep_len(x, n);
   NumericVector t2 =    Rcpp::rep_len(theta, n);
-
-
   NumericVector f(n);
 
   for(int i=0; i<n; i++){
@@ -422,10 +429,11 @@ NumericVector dinvlind(
 }
 
 // [[Rcpp::export]]
-NumericVector pinvlind(
+NumericVector pinvlind_c(
     NumericVector x,
     NumericVector theta,
-    bool log=false
+    bool lower_tail=true,
+    bool log_p=false
 ){
   int xs = x.size();
   int ts = theta.size();
@@ -433,11 +441,10 @@ NumericVector pinvlind(
 
   NumericVector x2 =    Rcpp::rep_len(x, n);
   NumericVector t2 =    Rcpp::rep_len(theta, n);
-
   NumericVector F(n);
 
   for(int i=0; i<n; i++){
-    F[i] = pinvlind_raw(x2[i], t2[i], log);
+    F[i] = pinvlind_raw(x2[i], t2[i], lower_tail, log_p);
   }
 
   return F;

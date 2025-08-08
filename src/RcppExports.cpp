@@ -10,9 +10,9 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// derlang
-NumericVector derlang(NumericVector x, NumericVector k, NumericVector l, bool log);
-RcppExport SEXP _survshotgunR_derlang(SEXP xSEXP, SEXP kSEXP, SEXP lSEXP, SEXP logSEXP) {
+// derlang_c
+NumericVector derlang_c(NumericVector x, NumericVector k, NumericVector l, bool log);
+RcppExport SEXP _survshotgunR_derlang_c(SEXP xSEXP, SEXP kSEXP, SEXP lSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -20,27 +20,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type k(kSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type l(lSEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(derlang(x, k, l, log));
+    rcpp_result_gen = Rcpp::wrap(derlang_c(x, k, l, log));
     return rcpp_result_gen;
 END_RCPP
 }
-// perlang
-NumericVector perlang(NumericVector x, NumericVector k, NumericVector l, bool log);
-RcppExport SEXP _survshotgunR_perlang(SEXP xSEXP, SEXP kSEXP, SEXP lSEXP, SEXP logSEXP) {
+// perlang_c
+NumericVector perlang_c(NumericVector x, NumericVector k, NumericVector l, bool lower_tail, bool log_p);
+RcppExport SEXP _survshotgunR_perlang_c(SEXP xSEXP, SEXP kSEXP, SEXP lSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type k(kSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type l(lSEXP);
-    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(perlang(x, k, l, log));
+    Rcpp::traits::input_parameter< bool >::type lower_tail(lower_tailSEXP);
+    Rcpp::traits::input_parameter< bool >::type log_p(log_pSEXP);
+    rcpp_result_gen = Rcpp::wrap(perlang_c(x, k, l, lower_tail, log_p));
     return rcpp_result_gen;
 END_RCPP
 }
-// dgamgomp
-NumericVector dgamgomp(NumericVector x, NumericVector b, NumericVector s, NumericVector beta, bool log);
-RcppExport SEXP _survshotgunR_dgamgomp(SEXP xSEXP, SEXP bSEXP, SEXP sSEXP, SEXP betaSEXP, SEXP logSEXP) {
+// dgamgomp_c
+NumericVector dgamgomp_c(NumericVector x, NumericVector b, NumericVector s, NumericVector beta, bool log);
+RcppExport SEXP _survshotgunR_dgamgomp_c(SEXP xSEXP, SEXP bSEXP, SEXP sSEXP, SEXP betaSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -49,13 +50,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type s(sSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(dgamgomp(x, b, s, beta, log));
+    rcpp_result_gen = Rcpp::wrap(dgamgomp_c(x, b, s, beta, log));
     return rcpp_result_gen;
 END_RCPP
 }
-// pgamgomp
-NumericVector pgamgomp(NumericVector x, NumericVector b, NumericVector s, NumericVector beta, bool log);
-RcppExport SEXP _survshotgunR_pgamgomp(SEXP xSEXP, SEXP bSEXP, SEXP sSEXP, SEXP betaSEXP, SEXP logSEXP) {
+// pgamgomp_c
+NumericVector pgamgomp_c(NumericVector x, NumericVector b, NumericVector s, NumericVector beta, bool lower_tail, bool log_p);
+RcppExport SEXP _survshotgunR_pgamgomp_c(SEXP xSEXP, SEXP bSEXP, SEXP sSEXP, SEXP betaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -63,14 +64,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type s(sSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(pgamgomp(x, b, s, beta, log));
+    Rcpp::traits::input_parameter< bool >::type lower_tail(lower_tailSEXP);
+    Rcpp::traits::input_parameter< bool >::type log_p(log_pSEXP);
+    rcpp_result_gen = Rcpp::wrap(pgamgomp_c(x, b, s, beta, lower_tail, log_p));
     return rcpp_result_gen;
 END_RCPP
 }
-// dlogcauchy
-NumericVector dlogcauchy(NumericVector x, NumericVector mu, NumericVector sigma, bool log);
-RcppExport SEXP _survshotgunR_dlogcauchy(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP logSEXP) {
+// dlogcauchy_c
+NumericVector dlogcauchy_c(NumericVector x, NumericVector mu, NumericVector sigma, bool log);
+RcppExport SEXP _survshotgunR_dlogcauchy_c(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -78,27 +80,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type mu(muSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(dlogcauchy(x, mu, sigma, log));
+    rcpp_result_gen = Rcpp::wrap(dlogcauchy_c(x, mu, sigma, log));
     return rcpp_result_gen;
 END_RCPP
 }
-// plogcauchy
-NumericVector plogcauchy(NumericVector x, NumericVector mu, NumericVector sigma, bool log);
-RcppExport SEXP _survshotgunR_plogcauchy(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP logSEXP) {
+// plogcauchy_c
+NumericVector plogcauchy_c(NumericVector x, NumericVector mu, NumericVector sigma, bool lower_tail, bool log_p);
+RcppExport SEXP _survshotgunR_plogcauchy_c(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type mu(muSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(plogcauchy(x, mu, sigma, log));
+    Rcpp::traits::input_parameter< bool >::type lower_tail(lower_tailSEXP);
+    Rcpp::traits::input_parameter< bool >::type log_p(log_pSEXP);
+    rcpp_result_gen = Rcpp::wrap(plogcauchy_c(x, mu, sigma, lower_tail, log_p));
     return rcpp_result_gen;
 END_RCPP
 }
-// dhypertab
-NumericVector dhypertab(NumericVector x, NumericVector a, NumericVector b, bool log);
-RcppExport SEXP _survshotgunR_dhypertab(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP, SEXP logSEXP) {
+// dhypertab_c
+NumericVector dhypertab_c(NumericVector x, NumericVector a, NumericVector b, bool log);
+RcppExport SEXP _survshotgunR_dhypertab_c(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -106,62 +109,64 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(dhypertab(x, a, b, log));
+    rcpp_result_gen = Rcpp::wrap(dhypertab_c(x, a, b, log));
     return rcpp_result_gen;
 END_RCPP
 }
-// phypertab
-NumericVector phypertab(NumericVector x, NumericVector a, NumericVector b, bool log);
-RcppExport SEXP _survshotgunR_phypertab(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP, SEXP logSEXP) {
+// phypertab_c
+NumericVector phypertab_c(NumericVector x, NumericVector a, NumericVector b, bool lower_tail, bool log_p);
+RcppExport SEXP _survshotgunR_phypertab_c(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
-    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(phypertab(x, a, b, log));
+    Rcpp::traits::input_parameter< bool >::type lower_tail(lower_tailSEXP);
+    Rcpp::traits::input_parameter< bool >::type log_p(log_pSEXP);
+    rcpp_result_gen = Rcpp::wrap(phypertab_c(x, a, b, lower_tail, log_p));
     return rcpp_result_gen;
 END_RCPP
 }
-// dinvlind
-NumericVector dinvlind(NumericVector x, NumericVector theta, bool log);
-RcppExport SEXP _survshotgunR_dinvlind(SEXP xSEXP, SEXP thetaSEXP, SEXP logSEXP) {
+// dinvlind_c
+NumericVector dinvlind_c(NumericVector x, NumericVector theta, bool log);
+RcppExport SEXP _survshotgunR_dinvlind_c(SEXP xSEXP, SEXP thetaSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(dinvlind(x, theta, log));
+    rcpp_result_gen = Rcpp::wrap(dinvlind_c(x, theta, log));
     return rcpp_result_gen;
 END_RCPP
 }
-// pinvlind
-NumericVector pinvlind(NumericVector x, NumericVector theta, bool log);
-RcppExport SEXP _survshotgunR_pinvlind(SEXP xSEXP, SEXP thetaSEXP, SEXP logSEXP) {
+// pinvlind_c
+NumericVector pinvlind_c(NumericVector x, NumericVector theta, bool lower_tail, bool log_p);
+RcppExport SEXP _survshotgunR_pinvlind_c(SEXP xSEXP, SEXP thetaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(pinvlind(x, theta, log));
+    Rcpp::traits::input_parameter< bool >::type lower_tail(lower_tailSEXP);
+    Rcpp::traits::input_parameter< bool >::type log_p(log_pSEXP);
+    rcpp_result_gen = Rcpp::wrap(pinvlind_c(x, theta, lower_tail, log_p));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_survshotgunR_derlang", (DL_FUNC) &_survshotgunR_derlang, 4},
-    {"_survshotgunR_perlang", (DL_FUNC) &_survshotgunR_perlang, 4},
-    {"_survshotgunR_dgamgomp", (DL_FUNC) &_survshotgunR_dgamgomp, 5},
-    {"_survshotgunR_pgamgomp", (DL_FUNC) &_survshotgunR_pgamgomp, 5},
-    {"_survshotgunR_dlogcauchy", (DL_FUNC) &_survshotgunR_dlogcauchy, 4},
-    {"_survshotgunR_plogcauchy", (DL_FUNC) &_survshotgunR_plogcauchy, 4},
-    {"_survshotgunR_dhypertab", (DL_FUNC) &_survshotgunR_dhypertab, 4},
-    {"_survshotgunR_phypertab", (DL_FUNC) &_survshotgunR_phypertab, 4},
-    {"_survshotgunR_dinvlind", (DL_FUNC) &_survshotgunR_dinvlind, 3},
-    {"_survshotgunR_pinvlind", (DL_FUNC) &_survshotgunR_pinvlind, 3},
+    {"_survshotgunR_derlang_c", (DL_FUNC) &_survshotgunR_derlang_c, 4},
+    {"_survshotgunR_perlang_c", (DL_FUNC) &_survshotgunR_perlang_c, 5},
+    {"_survshotgunR_dgamgomp_c", (DL_FUNC) &_survshotgunR_dgamgomp_c, 5},
+    {"_survshotgunR_pgamgomp_c", (DL_FUNC) &_survshotgunR_pgamgomp_c, 6},
+    {"_survshotgunR_dlogcauchy_c", (DL_FUNC) &_survshotgunR_dlogcauchy_c, 4},
+    {"_survshotgunR_plogcauchy_c", (DL_FUNC) &_survshotgunR_plogcauchy_c, 5},
+    {"_survshotgunR_dhypertab_c", (DL_FUNC) &_survshotgunR_dhypertab_c, 4},
+    {"_survshotgunR_phypertab_c", (DL_FUNC) &_survshotgunR_phypertab_c, 5},
+    {"_survshotgunR_dinvlind_c", (DL_FUNC) &_survshotgunR_dinvlind_c, 3},
+    {"_survshotgunR_pinvlind_c", (DL_FUNC) &_survshotgunR_pinvlind_c, 4},
     {NULL, NULL, 0}
 };
 

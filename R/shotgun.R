@@ -1,4 +1,4 @@
-source('R/flexsurvdist.R')
+source('R/flex_surv_dist.R')
 
 #' Shotgun
 surv_shotgun <- function(formula, data=NA, skip=c('default'), dump_models =F, progress=T, warn=F){
