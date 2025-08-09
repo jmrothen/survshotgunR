@@ -1,5 +1,4 @@
 ## This script contains the primary survival-shotgun function
-##
 
 
 
@@ -17,19 +16,19 @@
 #' library(survival)
 #' surv_shotgun(Surv(time, status)~1, data=aml, dump_models=TRUE, warn = TRUE)
 #'
-#'
 #' @export
 surv_shotgun <- function(
     formula,
     data=NA,
     skip=c('default'),
-    dump_models =F,
+    dump_models=F,
     progress=T,
     warn=F
 ){
   # The default shotgun list will exclude the following. Comments describe why
   if(length(skip)==1 & skip[1]=='default'){
     skip <- c(
+      'weibullPH',                  # identical to other weibull
       'genf.orig',                  # running genf instead
       'gengamma.orig',              # running gengamma instead
       'erlang',                     # erlang is temporarily removed anyways
@@ -84,6 +83,7 @@ surv_shotgun <- function(
   # initialize a quick dataframe which we'll update with each iteration
   dist_summary <- data.frame(
     dist_name = '1',
+    dist_source= '2',
     dist_ran = T,
     aic = 1,
     bic = 1,
@@ -95,13 +95,15 @@ surv_shotgun <- function(
   iter <- 1
   for(i in dist_list){
 
+    current_dist <- names(dist_list)[iter]
+    custom_indicator <- !(current_dist %in% names(flexsurv::flexsurv.dists))
+    current_source <- ifelse(custom_indicator, 'survshotgun','flexsurv')
+
     # skip distribution if in our skip list
     if(i$name %in% skip | dplyr::coalesce(i$fullname, i$name) %in% skip | names(dist_list)[iter] %in% skip){
       iter <- iter+1
       next
     }
-
-    current_dist <- dplyr::coalesce(i$fullname, i$name)
 
     # optional progress tracking chunk
     if(progress){
@@ -122,11 +124,21 @@ surv_shotgun <- function(
       # additional level of obfuscation here to allow for us to continue on warnings
       withCallingHandlers({
 
-        # if we were supplied dataset, include that here, otherwise we just use formula
-        if(data_req){
-          flexsurv::flexsurvreg(formula, dist=i, data=data, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
-        }else{
-          flexsurv::flexsurvreg(formula, dist=i, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
+        # if working with a native distribution, we'll not specify the <dfns> argument
+        if(!custom_indicator)
+          if(data_req){
+            flexsurv::flexsurvreg(formula, dist=current_dist, data=data) %>% suppressMessages() -> current_model
+          }else{
+            flexsurv::flexsurvreg(formula, dist=current_dist) %>% suppressMessages() -> current_model
+          }
+
+        # for custom distributions, we specify the DFNs
+        else{
+          if(data_req){
+            flexsurv::flexsurvreg(formula, dist=i, data=data, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
+          }else{
+            flexsurv::flexsurvreg(formula, dist=i, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
+          }
         }
 
         # if model succeeds, collect information
@@ -151,7 +163,7 @@ surv_shotgun <- function(
     # add current iteration's results to our progress dataframe
     dist_summary %>%
       dplyr::add_row(
-        dist_name = current_dist, dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
+        dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
       ) -> dist_summary
 
     # if we are model dumping, we assign the model to the global environment with name fssg_<model name>
@@ -194,13 +206,13 @@ surv_shotgun <- function(
 if(F){
   # quick tests
   surv_shotgun(survival::Surv(time, status)~1, data=survival::aml, dump_models=T, warn = T)
-  surv_shotgun(survival::Surv(time,status) ~1, data = survival::cancer, dump_models = T, warn=T)
+  surv_shotgun(survival::Surv(time,status) ~1, data = survival::cancer, dump_models = T, warn=F)
 
 
   surv_shotgun(survival::Surv(time,status)~ x, data=survival::aml, dump_models=T, warn = T)
 
-  surv_shotgun(survival::Surv(time,status)~ inst, data = survival::cancer, dump_models = T, warn=T)
-  surv_shotgun(survival::Surv(time,status)~ sex, data = survival::cancer, dump_models = T, warn=T)
-  surv_shotgun(survival::Surv(time,status)~ ph.ecog, data = survival::cancer, dump_models = T, warn=T)
+  # surv_shotgun(survival::Surv(time,status)~ inst, data = survival::cancer, dump_models = T, warn=T)
+  surv_shotgun(survival::Surv(time,status)~ sex, data = survival::cancer, dump_models = T, warn=F)
+  # surv_shotgun(survival::Surv(time,status)~ ph.ecog, data = survival::cancer, dump_models = T, warn=T)
 
 }

@@ -36,5 +36,4 @@ Shotgun
 library(survival)
 surv_shotgun(Surv(time, status)~1, data=aml, dump_models=TRUE, warn = TRUE)
 
-
 }
