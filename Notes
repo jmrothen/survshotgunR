@@ -14,3 +14,16 @@ usethis: use_data, use_data_raw
 
 
 If the push/pull buttons break, send a push with -u at the end.
+
+
+TODO:
+
+- better inits for levy, inverse_gaussian, hypertab, gam-gomp
+- better plotting alternative than just plot
+- integrate plotting into shotgun
+- additional models
+
+- CURRENTLY, ALL MY ADDITIONS ARE BEING TREATED AS AFT
+  - NEED TO ADD IN A CHECK TO NOT SPECIFY P AND D WHEN ENTERING IN FLEXSURV NATIVE DISTRIBUTIONS
+  - ALSO NEED TO CONSIDER PH VERSIONS OF DISTRIBUTIONS
+  - would need to just add h and H functions for each dist, and supply them instead of d and p

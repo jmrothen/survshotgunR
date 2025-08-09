@@ -18,6 +18,7 @@ Imports:
     magrittr,
     Rcpp,
     stats,
+    survival,
     tictoc,
     VGAM
 Suggests: 
