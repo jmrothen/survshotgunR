@@ -4,22 +4,31 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of survshotgunR is to ...
+This package is designed to provide a simple, one-line-of-code approach to testing parametric survival functions on a set of data. 
+This is done by running 60+ different parametric survival curves in order to see which one may be best suited to describing your data! 
 
 ## Installation
 
 You can install the development version of survshotgunR like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+devtools::install_github('jmrothen/survshotgunR')
 ```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+The package is designed to be mostly contained to one function, surv_shotgun. Simply provide a survival formula, and receive a table of each model run, and how it fits:
 
 ``` r
 library(survshotgunR)
-## basic example code
+
+# sample dataset available in <survival>
+library(survival)
+surv_shotgun(Surv(time, status)~1, data=aml, dump_models=TRUE) 
+
 ```
 
+
+## Developer's Notes
+
+This is still a very young package, so please expect some errors to occur. Please feel free to submit issues via github if you find them!
