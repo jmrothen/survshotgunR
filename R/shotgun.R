@@ -10,6 +10,8 @@
 #' @param dump_models Logical. If TRUE, each successful model created will be loaded into memory as fssg_<model_name>
 #' @param progress Logical. Want progress updates?
 #' @param warn Logical. If TRUE, also prints any warnings that appear.
+#' @param spline Logical. If TRUE, also estimates possible spline models.
+#' @param max_knots Integer. Specifies the maximum number of knots considered in spline models.
 #' @returns Data frame summarizing each model, and some general goodness of fit measures.
 #'
 #' @examples
@@ -23,7 +25,9 @@ surv_shotgun <- function(
     skip=c('default'),
     dump_models=F,
     progress=T,
-    warn=F
+    warn=F,
+    spline=T,
+    max_knots=5
 ){
   # The default shotgun list will exclude the following. Comments describe why
   if(length(skip)==1 & skip[1]=='default'){
@@ -89,7 +93,6 @@ surv_shotgun <- function(
     bic = 1,
     loglik = 1
   )[-1,]
-
 
   # iterate through each distribution, creating the model if possible and storing results
   iter <- 1
@@ -179,6 +182,87 @@ surv_shotgun <- function(
     iter = iter+1
   }
 
+  # Spline section
+  if(spline){
+
+    requireNamespace('splines2')
+
+    # optional progress tracking chunk
+    if(progress){
+      message('------------------------------------------------------------------------')
+      message("Spline")
+      tictoc::tic(current_dist)
+    }
+
+    kvec <- c(rep(rep(1:max_knots),6))
+    svec <- c(rep('hazard',max_knots), rep('odds',max_knots), rep('normal',max_knots), rep('hazard',max_knots), rep('odds',max_knots), rep('normal',max_knots))
+    mvec <- c(rep("rp",max_knots*3), rep('splines2ns',max_knots*3))
+    current_source <- 'flexsurv'
+
+
+    for(s in 1:length(kvec)){
+
+      # iteration level name
+      current_dist <- paste('spline',ifelse(mvec[s]=='rp','rp','s2ns'), svec[s], kvec[s], sep='_')
+
+      # reset iteration level variables
+      dist_success<- F
+      current_aic <- NA
+      current_bic <- NA
+      current_ll <- NA
+
+      tryCatch({
+
+        # additional level of obfuscation here to allow for us to continue on warnings
+        withCallingHandlers({
+
+          # cycle through our spline options
+          if(data_req){
+            flexsurv::flexsurvspline(formula, data=data, k=kvec[s], scale=svec[s], spline=mvec[s]) %>% suppressMessages() -> current_model
+          }else{
+            flexsurv::flexsurvspline(formula, k=kvec[s], scale=svec[s], spline=mvec[s]) %>% suppressMessages() -> current_model
+          }
+
+          # if model succeeds, collect information
+          current_aic <- stats::AIC(current_model)
+          current_bic <- stats::BIC(current_model)
+          current_ll <- current_model$loglik
+          dist_success<-T
+        },
+
+        # warnings are very common in flexsurv / optim, so if we get one, we conditionally print and continue
+        warning=function(w){
+          if(warn){message(paste('Warning in', current_dist,'model :',w))}
+          invokeRestart('muffleWarning')
+        })
+      },
+
+      # If the TryCatch errors, print out the error that occurred and continue
+      error=function(e){
+        message(paste("Error in", current_dist,"model :",e))
+      })
+
+      # If spline succeeds, we add, otherwise don't (prevents clutter)
+      if(dist_success){
+        dist_summary %>%
+          dplyr::add_row(
+            dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
+          ) -> dist_summary
+
+        # if we are model dumping, we assign the model to the global environment with name fssg_<model name>
+        if(dump_models & dist_success){
+          assign(paste('fssg_',current_dist,sep='',collapse=''), current_model, envir = .GlobalEnv) # fssg = flex surv shot gun
+        }
+      }
+    }
+
+    # close the spline tracker and print message
+    if(progress){
+      tictoc::toc(quiet =T)$callback_msg %>% message()
+    }
+
+  }
+
   # garbage clean
   gc(verbose = F)
 
@@ -209,10 +293,10 @@ if(F){
   surv_shotgun(survival::Surv(time,status) ~1, data = survival::cancer, dump_models = T, warn=F)
 
 
-  surv_shotgun(survival::Surv(time,status)~ x, data=survival::aml, dump_models=T, warn = T)
+  surv_shotgun(survival::Surv(time,status)~ factor(x), data=survival::aml, dump_models=T, warn = T)
 
   # surv_shotgun(survival::Surv(time,status)~ inst, data = survival::cancer, dump_models = T, warn=T)
-  surv_shotgun(survival::Surv(time,status)~ sex, data = survival::cancer, dump_models = T, warn=F)
+  surv_shotgun(survival::Surv(time,status)~ factor(sex), data = survival::cancer, dump_models = T, warn=F)
   # surv_shotgun(survival::Surv(time,status)~ ph.ecog, data = survival::cancer, dump_models = T, warn=T)
 
 }
