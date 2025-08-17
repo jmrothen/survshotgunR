@@ -12,7 +12,8 @@ surv_shotgun(
   progress = T,
   warn = F,
   spline = T,
-  max_knots = 5
+  max_knots = 5,
+  coxph = F
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ surv_shotgun(
 \item{spline}{Logical. If TRUE, also estimates possible spline models.}
 
 \item{max_knots}{Integer. Specifies the maximum number of knots considered in spline models.}
+
+\item{coxph}{Logical. If TRUE, calculates a Cox Proportional Hazard Model as well. Please note that is not recommended to directly compare the AIC/BIC/LogLik of Cox models to Parametric models}
 }
 \value{
 Data frame summarizing each model, and some general goodness of fit measures.

@@ -12,6 +12,7 @@
 #' @param warn Logical. If TRUE, also prints any warnings that appear.
 #' @param spline Logical. If TRUE, also estimates possible spline models.
 #' @param max_knots Integer. Specifies the maximum number of knots considered in spline models.
+#' @param coxph Logical. If TRUE, calculates a Cox Proportional Hazard Model as well. Please note that is not recommended to directly compare the AIC/BIC/LogLik of Cox models to Parametric models
 #' @returns Data frame summarizing each model, and some general goodness of fit measures.
 #'
 #' @examples
@@ -27,7 +28,8 @@ surv_shotgun <- function(
     progress=T,
     warn=F,
     spline=T,
-    max_knots=5
+    max_knots=5,
+    coxph=F
 ){
   # The default shotgun list will exclude the following. Comments describe why
   if(length(skip)==1 & skip[1]=='default'){
@@ -185,6 +187,7 @@ surv_shotgun <- function(
   # Spline section
   if(spline){
 
+    # RP works on it's own, but if we also want to try the 'natural cubic spline', we need splines2
     requireNamespace('splines2')
 
     # optional progress tracking chunk
@@ -198,7 +201,6 @@ surv_shotgun <- function(
     svec <- c(rep('hazard',max_knots), rep('odds',max_knots), rep('normal',max_knots), rep('hazard',max_knots), rep('odds',max_knots), rep('normal',max_knots))
     mvec <- c(rep("rp",max_knots*3), rep('splines2ns',max_knots*3))
     current_source <- 'flexsurv'
-
 
     for(s in 1:length(kvec)){
 
@@ -263,6 +265,73 @@ surv_shotgun <- function(
 
   }
 
+  # simple Coxph section
+  if(coxph){
+
+    current_dist <- 'coxph'
+    current_source <- 'survival'
+
+    # optional progress tracking chunk
+    if(progress){
+      message('------------------------------------------------------------------------')
+      message(current_dist)
+      tictoc::tic(current_dist)
+    }
+
+    # reset iteration level variables
+    dist_success<- F
+    current_aic <- NA
+    current_bic <- NA
+    current_ll <- NA
+
+    tryCatch({
+
+      # additional level of obfuscation here to allow for us to continue on warnings
+      withCallingHandlers({
+
+        # cycle through our spline options
+        if(data_req){
+          survival::coxph(formula, data=data) %>% suppressMessages() -> current_model
+        }else{
+          survival::coxph(formula) %>% suppressMessages() -> current_model
+        }
+
+        # if model succeeds, collect information
+        current_aic <- stats::AIC(current_model)
+        current_bic <- stats::BIC(current_model)
+        current_ll <- current_model$loglik
+        dist_success<-T
+      },
+
+      # warnings are very common in flexsurv / optim, so if we get one, we conditionally print and continue
+      warning=function(w){
+        if(warn){message(paste('Warning in', current_dist,'model :',w))}
+        invokeRestart('muffleWarning')
+      })
+    },
+
+    # If the TryCatch errors, print out the error that occurred and continue
+    error=function(e){
+      message(paste("Error in", current_dist,"model :",e))
+    })
+
+    # If spline succeeds, we add, otherwise don't (prevents clutter)
+    dist_summary %>%
+      dplyr::add_row(
+        dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
+      ) -> dist_summary
+
+      # if we are model dumping, we assign the model to the global environment with name fssg_<model name>
+    if(dump_models & dist_success){
+      assign(paste('fssg_',current_dist,sep='',collapse=''), current_model, envir = .GlobalEnv) # fssg = flex surv shot gun
+    }
+
+    # close the cox tracker and print message
+    if(progress){
+      tictoc::toc(quiet =T)$callback_msg %>% message()
+    }
+  }
+
   # garbage clean
   gc(verbose = F)
 
@@ -288,15 +357,20 @@ surv_shotgun <- function(
 
 ### raw testing chunk from legacy testing
 if(F){
-  # quick tests
-  surv_shotgun(survival::Surv(time, status)~1, data=survival::aml, dump_models=T, warn = T)
-  surv_shotgun(survival::Surv(time,status) ~1, data = survival::cancer, dump_models = T, warn=F)
 
+  ###
+  # coxph(survival::Surv(time, status) ~ 1, data = survival::aml)
+  # coxph(survival::Surv(time, status) ~ factor(x), data = survival::aml)
 
-  surv_shotgun(survival::Surv(time,status)~ factor(x), data=survival::aml, dump_models=T, warn = T)
+  ### Verify flexsurvreg and survreg work the same for us (same LL, AIC, etc)
+  # survreg(survival::Surv(time, status) ~ 1, data = survival::aml, dist = 'exp')
+  # flexsurvreg(survival::Surv(time, status) ~ 1, data = survival::aml, dist = 'exp')
 
-  # surv_shotgun(survival::Surv(time,status)~ inst, data = survival::cancer, dump_models = T, warn=T)
-  surv_shotgun(survival::Surv(time,status)~ factor(sex), data = survival::cancer, dump_models = T, warn=F)
-  # surv_shotgun(survival::Surv(time,status)~ ph.ecog, data = survival::cancer, dump_models = T, warn=T)
+  # simple model tests
+  surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::aml,    dump_models = T, warn = T)
+  surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::cancer, dump_models = T, warn = F)
 
+  # single variable models
+  surv_shotgun(survival::Surv(time, status) ~ factor(x),   data = survival::aml,    dump_models = T, warn = T)
+  surv_shotgun(survival::Surv(time, status) ~ factor(sex), data = survival::cancer, dump_models = T, warn = F)
 }
