@@ -10,7 +10,7 @@
 #' @param dump_models Logical. If TRUE, each successful model created will be loaded into memory as fssg_<model_name>
 #' @param progress Logical. Want progress updates?
 #' @param warn Logical. If TRUE, also prints any warnings that appear.
-#' @param spline Logical. If TRUE, also estimates possible spline models.
+#' @param spline Vector. Should include 'rp' for Royston-Parmar natural cubic spline. Can also include 'wy' for Wang-Yan alternative natural cubic spline. The Wang-Yan version requires the package 'splines2ns'.
 #' @param max_knots Integer. Specifies the maximum number of knots considered in spline models.
 #' @param coxph Logical. If TRUE, calculates a Cox Proportional Hazard Model as well. Please note that is not recommended to directly compare the AIC/BIC/LogLik of Cox models to Parametric models
 #' @returns Data frame summarizing each model, and some general goodness of fit measures.
@@ -27,7 +27,7 @@ surv_shotgun <- function(
     dump_models=F,
     progress=T,
     warn=F,
-    spline=T,
+    spline=c('rp'),
     max_knots=5,
     coxph=F
 ){
@@ -185,10 +185,10 @@ surv_shotgun <- function(
   }
 
   # Spline section
-  if(spline){
+  if('rp' %in% spline  | 'wy' %in% spline){
 
     # RP works on it's own, but if we also want to try the 'natural cubic spline', we need splines2
-    requireNamespace('splines2')
+    if('wy' %in% spline){requireNamespace('splines2')}
 
     # optional progress tracking chunk
     if(progress){
@@ -197,15 +197,25 @@ surv_shotgun <- function(
       tictoc::tic(current_dist)
     }
 
-    kvec <- c(rep(rep(1:max_knots),6))
-    svec <- c(rep('hazard',max_knots), rep('odds',max_knots), rep('normal',max_knots), rep('hazard',max_knots), rep('odds',max_knots), rep('normal',max_knots))
-    mvec <- c(rep("rp",max_knots*3), rep('splines2ns',max_knots*3))
+    n_reps <- sum(('rp' %in% spline), ('wy' %in% spline))
+
+    kvec <- c(rep(rep(1:max_knots), 3*n_reps))
+    svec <- c(rep(c(rep('hazard',max_knots), rep('odds',max_knots), rep('normal',max_knots)),n_reps))
+    if(n_reps==2){
+      mvec <- c(rep("rp",max_knots*3), rep('splines2ns',max_knots*3))
+    }else{
+      if('rp' %in% spline){
+        mvec <- rep("rp",max_knots*3)
+      }else{
+        mvec <-  rep('splines2ns',max_knots*3)
+      }
+    }
     current_source <- 'flexsurv'
 
     for(s in 1:length(kvec)){
 
       # iteration level name
-      current_dist <- paste('spline',ifelse(mvec[s]=='rp','rp','s2ns'), svec[s], kvec[s], sep='_')
+      current_dist <- paste('spline',ifelse(mvec[s]=='rp','rp','wy'), svec[s], kvec[s], sep='_')
 
       # reset iteration level variables
       dist_success<- F
@@ -367,10 +377,10 @@ if(F){
   # flexsurvreg(survival::Surv(time, status) ~ 1, data = survival::aml, dist = 'exp')
 
   # simple model tests
-  surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::aml,    dump_models = T, warn = T)
+  surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::aml,    dump_models = T, warn = F, spline=c('rp','wy'))
   surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::cancer, dump_models = T, warn = F)
 
   # single variable models
-  surv_shotgun(survival::Surv(time, status) ~ factor(x),   data = survival::aml,    dump_models = T, warn = T)
+  surv_shotgun(survival::Surv(time, status) ~ factor(x),   data = survival::aml,    dump_models = T, warn = F)
   surv_shotgun(survival::Surv(time, status) ~ factor(sex), data = survival::cancer, dump_models = T, warn = F)
 }

@@ -11,7 +11,7 @@ surv_shotgun(
   dump_models = F,
   progress = T,
   warn = F,
-  spline = T,
+  spline = c("rp"),
   max_knots = 5,
   coxph = F
 )
@@ -29,7 +29,7 @@ surv_shotgun(
 
 \item{warn}{Logical. If TRUE, also prints any warnings that appear.}
 
-\item{spline}{Logical. If TRUE, also estimates possible spline models.}
+\item{spline}{Vector. Should include 'rp' for Royston-Parmar natural cubic spline. Can also include 'wy' for Wang-Yan alternative natural cubic spline. The Wang-Yan version requires the package 'splines2ns'.}
 
 \item{max_knots}{Integer. Specifies the maximum number of knots considered in spline models.}
 
