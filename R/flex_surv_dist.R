@@ -4,12 +4,14 @@
 #     name = '',               # this should be the shortened name that appears after d/p in the distribution functions i.e. "norm" in dnorm
 #     pars = c('','',''),      # a vector of each parameter name, exactly as they are stated in the d/p functions i.e c('mean','sd') for norm
 #     location= c(),           # IMPORTANT: specifies which parameters should vary based on the covarites in the model. Can usually omit shape /
-#                                  true-locations (like minimum or boundary parameters). This also is a key part of specifying AFT/PH interpretation of your model
+#                              #  true-locations (like minimum or boundary parameters). This also is a key part of specifying AFT/PH interpretation of your model
 #     transforms = c(),        # a vector of functions, one for each parameter, that transform the respective parameter into the real line. If param1 must be >0, log(param1) would be real
 #     inv.transforms=c(),      # a vector of functions which transform the real values back to the original scale. exp(log(param1) returns to the original range of param1
 #     inits = function(t){},   # a declared function which takes the time variable, and outputs initial estimates for the parameters. Ideally, estimates are based off of t somehow, but can be simple ints
 #     p = pdist,               # by default, flexsurv looks for the d/p functions using the <name> object above, but the shotgun function will use these declared p/d's instead
 #     d = ddist,               #
+#     h = hdist,               # May as well include the hazard functions as well!
+#     H = Hdist,               #
 #     fullname = ''            # this longer name is used in shotgun to better label the distribution in outputs and console tracking
 #   )
 # }
@@ -46,6 +48,7 @@ cumhazardify <- function(p_func){
     -log(sx)
   }
 }
+
 
 
 #' Compiles list of available distributions

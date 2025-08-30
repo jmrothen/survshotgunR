@@ -19,7 +19,9 @@ Imports:
     Rcpp,
     splines2,
     stats,
+    survAUC,
     survival,
+    SurvMetrics,
     tictoc,
     VGAM
 Suggests: 

@@ -361,7 +361,7 @@ surv_shotgun <- function(
   tictoc::toc(quiet=T)$callback_msg %>% message()
 
   # output is a data-frame, one row for each attempted model
-  dist_summary %>% dplyr::arrange(aic, bic, desc(loglik)) %>% return()
+  dist_summary %>% dplyr::arrange(aic, bic, dplyr::desc(loglik)) %>% return()
 }
 
 
