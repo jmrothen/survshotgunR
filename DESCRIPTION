@@ -17,7 +17,6 @@ Imports:
     flexsurv,
     magrittr,
     Rcpp,
-    splines2,
     stats,
     survAUC,
     survival,

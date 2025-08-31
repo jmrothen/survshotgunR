@@ -1,0 +1,28 @@
+Developer Notes
+
+Use these things for package development
+
+devtools: check, build, document, load_all
+    Maybes: reload, test (relies on testthat)
+
+Rcpp: compileAttributes    (basically imports the cpp functions)
+  -> PLEASE REMEMBER THIS
+
+
+usethis: use_data, use_data_raw
+
+
+
+If the push/pull buttons break, send a push with -u at the end.
+
+
+TODO:
+
+- better inits for levy, inverse_gaussian, hypertab, gam-gomp
+- better plotting alternative than just plot
+- integrate plotting into shotgun
+- additional models
+
+- NEW IDEA: IMPROVE SPECIFICATIONS TO FIT IN SURVIVAL AS WELL
+  - NEEDS THE FOLLOWING ITEMS:
+    - NAME, VARIANCE, PARMS, INIT, DEVIANCE, DENSITY, QUANTILE
