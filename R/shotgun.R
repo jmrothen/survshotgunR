@@ -431,28 +431,30 @@ surv_shotgun <- function(
   message('Final Summary!')
 
   ##### We want to aggregate the bests fit via statistics
-  dist_summary %>%
-    dplyr::mutate(
-      best_aic = ('aic'== min('aic',na.rm=T)),  # lower = better
-      best_bic = ('bic'== min('bic',na.rm=T)),  # lower = better
-      best_loglik = ('loglik'== max('loglik',na.rm=T)) # greater = better
-    ) -> dist_summary
+  dplyr::mutate(
+    dist_summary,
+    best_aic = (aic== min(aic,na.rm=T)),  # lower = better
+    best_bic = (bic== min(bic,na.rm=T)),  # lower = better
+    best_loglik = (loglik== max(loglik,na.rm=T)) # greater = better
+  ) -> dist_summary
 
   if(detailed){
-    dist_summary %>%
-      dplyr::mutate(
-        best_iauc = ('iAUC'== max('iAUC',na.rm=T)), # greater = better
-        best_cin = ('Cindex'== max('Cindex',na.rm=T)), # greater = better
-        best_uno = ('Unos.C'== max('Unos.C',na.rm=T)), # greater = better
-        best_bri = ('Brier.Median'== min('Brier.Median', na.rm=T)), # lower = better
-        best_mae = ('MAE'== min('MAE',na.rm=T)), # lower = better
-        best_iae = ('IAE'== min('IAE',na.rm=T)), # lower = better
-        best_ise = ('ISE'== min('ISE',na.rm=T)) # lower = better
-      ) -> dist_summary
+
+    dplyr::mutate(
+      dist_summary,
+      best_iauc = (iAUC== max(iAUC,na.rm=T)), # greater = better
+      best_cin = (Cindex== max(Cindex,na.rm=T)), # greater = better
+      best_uno = (Unos.C== max(Unos.C,na.rm=T)), # greater = better
+      best_bri = (Brier.Median== min(Brier.Median, na.rm=T)), # lower = better
+      best_mae = (MAE== min(MAE,na.rm=T)), # lower = better
+      best_iae = (IAE== min(IAE,na.rm=T)), # lower = better
+      best_ise = (ISE== min(ISE,na.rm=T)) # lower = better
+    ) -> dist_summary
 
     if(ibs){
-      dist_summary %>% dplyr::mutate(
-        best_ibs = ('IBS'== min('IBS',na.rm=T)), # lower = better
+      dplyr::mutate(
+        dist_summary,
+        best_ibs = (IBS== min(IBS,na.rm=T)), # lower = better
       ) -> dist_summary
     }
   }
@@ -499,28 +501,28 @@ surv_shotgun <- function(
   #   dplyr::select(dist_name) %>%
   #   dplyr::pull() -> best_models
 
-  message(paste('Model with best AIC:', paste(dplyr::filter(dist_summary, 'best_aic'==TRUE)$dist_name, collapse=', ')))
-  message(paste('Model with best BIC:', paste(dplyr::filter(dist_summary, 'best_bic'==TRUE)$dist_name, collapse=', ')))
+  message(paste('Model with best AIC:', paste(dplyr::filter(dist_summary, best_aic==TRUE)$dist_name, collapse=', ')))
+  message(paste('Model with best BIC:', paste(dplyr::filter(dist_summary, best_bic==TRUE)$dist_name, collapse=', ')))
 
   if(detailed){
     if(length(dplyr::filter(dist_summary, best_iauc=TRUE)$dist_name) >5){
       message(paste('Many Models tied for best iAUC'))
     }else{
-      message(paste('Model with best iAUC:', paste(dplyr::filter(dist_summary, 'best_iauc'=TRUE)$dist_name, collapse=', ')))
+      message(paste('Model with best iAUC:', paste(dplyr::filter(dist_summary, best_iauc==TRUE)$dist_name, collapse=', ')))
     }
 
     if(length(dplyr::filter(dist_summary, best_cin=TRUE)$dist_name) >5){
       message(paste('Many Models tied for best C-index'))
     }else{
-      message(paste('Model with best C-index:', paste(dplyr::filter(dist_summary, 'best_cin'==TRUE)$dist_name, collapse=', ')))
+      message(paste('Model with best C-index:', paste(dplyr::filter(dist_summary, best_cin==TRUE)$dist_name, collapse=', ')))
     }
   }
 
 
   if(ibs){
-    message(paste('Model with best IBS:', paste(dplyr::filter(dist_summary, 'best_ibs'==TRUE)$dist_name, collapse=', ')))
+    message(paste('Model with best IBS:', paste(dplyr::filter(dist_summary, best_ibs==TRUE)$dist_name, collapse=', ')))
   }else{
-    dist_summary %>% dplyr::select(-'IBS') -> dist_summary
+     dplyr::select(dist_summary, -IBS) -> dist_summary
   }
 
   for(q in colnames(dist_summary)){
@@ -535,12 +537,12 @@ surv_shotgun <- function(
   # output is a data-frame, one row for each attempted model
   if(detailed){
     if(ibs){
-      dist_summary %>% dplyr::arrange('aic', 'bic', dplyr::desc('IBS'), 'iAUC', 'Cindex') -> out
+       dplyr::arrange(dist_summary, aic, bic, dplyr::desc(IBS), iAUC, Cindex) -> out
     }else{
-      dist_summary %>% dplyr::arrange('aic', 'bic', 'iAUC', 'Cindex') -> out
+       dplyr::arrange(dist_summary,aic, bic, iAUC, Cindex) -> out
     }
   }else{
-    dist_summary %>% dplyr::arrange('aic', 'bic', dplyr::desc('loglik')) -> out
+    dplyr::arrange(dist_summary, aic, bic, dplyr::desc(loglik)) -> out
   }
   return(out)
 }
