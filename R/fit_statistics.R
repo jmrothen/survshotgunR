@@ -44,7 +44,9 @@ get_fit_stats <- function(Surv_object, model, ibs=FALSE){
   times_full  <- seq(1, max_time, 1)
 
   # basic predictions for the base data
-  preds      <- as.vector(unlist(stats::predict(model)))
+  preds      <- tryCatch(as.vector(unlist(stats::predict(model))), error=function(e){
+    as.vector(unlist(stats::predict(model, type='rmst')$.pred_rmst)) # use RMST if there are errors in predictions
+  })
 
   # survival rate predictions at {times}, used in IAEISE, IBS
   survprob   <- debulk_survprob(stats::predict(model, type='survival', times= times))
@@ -57,30 +59,30 @@ get_fit_stats <- function(Surv_object, model, ibs=FALSE){
   # uno_c      <- survival::concordance(Surv_object ~ preds, timewt = 'n/G2')$concordance
 
   ### survAUC functions
-  uno_c_auc  <- survAUC::UnoC(Surv_object, Surv_object, lpnew = -preds)
-  iauc       <- survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times)$iauc
-  iauc2      <- survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times_iqr)$iauc   # IQR version
-  iauc3      <- survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times_wide)$iauc  # Wider Version (10/90)
-  iauc4      <- survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times_full)$iauc  # Full version
-  iauc5      <- survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = c(med_time))$iauc # AUC at median
-  iauc6      <- survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = c(avg_time))$iauc # AUC at mean
+  uno_c_auc  <- tryCatch(survAUC::UnoC(Surv_object, Surv_object, lpnew = -preds)    , error=function(e){NA})
+  # iauc       <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times)$iauc, error=function(e){NA})
+  iauc2      <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times_iqr)$iauc, error=function(e){NA})   # IQR version
+  iauc3      <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times_wide)$iauc, error=function(e){NA})  # Wider Version (10/90)
+  iauc4      <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times_full)$iauc, error=function(e){NA})  # Full version
+  iauc5      <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = c(med_time))$iauc, error=function(e){NA}) # AUC at median
+  iauc6      <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = c(avg_time))$iauc, error=function(e){NA}) # AUC at mean
 
   ### metrics
-  c_index    <- SurvMetrics::Cindex(Surv_object, predicted = preds)%>% as.numeric()
-  mae        <- SurvMetrics::MAE(Surv_object, pre_time= preds) %>% as.numeric()
-  # i_stats    <- SurvMetrics::IAEISE(Surv_object, sp_matrix = survprob,  IRange=times) %>% as.numeric()  ### vastly underestimates I stats?
-  i_stats2   <- SurvMetrics::IAEISE(Surv_object, sp_matrix = survprob2, IRange=times_iqr)%>% as.numeric()
-  i_stats3   <- SurvMetrics::IAEISE(Surv_object, sp_matrix = survprob3, IRange=times_wide)%>% as.numeric()
-  i_stats4   <- SurvMetrics::IAEISE(Surv_object, sp_matrix = survprob4, IRange=times_full)%>% as.numeric()
-  brier_med  <- SurvMetrics::Brier(Surv_object, pre_sp = as.vector(unlist(predict(model, type='survival', times=med_time)$.pred_survival)), t_star = med_time) %>% as.numeric()
-  brier_avg  <- SurvMetrics::Brier(Surv_object, pre_sp = as.vector(unlist(predict(model, type='survival', times=avg_time)$.pred_survival)), t_star = avg_time) %>% as.numeric()
+  c_index    <- tryCatch(SurvMetrics::Cindex(Surv_object, predicted = preds), error=function(e){NA}) %>% as.numeric()
+  mae        <- tryCatch(SurvMetrics::MAE(Surv_object, pre_time= preds), error=function(e){NA}) %>% as.numeric()
+  # i_stats    <- tryCatch(SurvMetrics::IAEISE(Surv_object, sp_matrix = survprob,  IRange=times), error=function(e){NA}) %>% as.numeric()  ### vastly underestimates I stats?
+  i_stats2   <- tryCatch(SurvMetrics::IAEISE(Surv_object, sp_matrix = survprob2, IRange=times_iqr), error=function(e){NA})%>% as.numeric()
+  i_stats3   <- tryCatch(SurvMetrics::IAEISE(Surv_object, sp_matrix = survprob3, IRange=times_wide), error=function(e){NA})%>% as.numeric()
+  i_stats4   <- tryCatch(SurvMetrics::IAEISE(Surv_object, sp_matrix = survprob4, IRange=times_full), error=function(e){NA})%>% as.numeric()
+  brier_med  <- tryCatch(SurvMetrics::Brier(Surv_object, pre_sp = as.vector(unlist(stats::predict(model, type='survival', times=med_time)$.pred_survival)), t_star = med_time), error=function(e){NA}) %>% as.numeric()
+  brier_avg  <- tryCatch(SurvMetrics::Brier(Surv_object, pre_sp = as.vector(unlist(stats::predict(model, type='survival', times=avg_time)$.pred_survival)), t_star = avg_time), error=function(e){NA}) %>% as.numeric()
 
   # output
   out <- list(
     # 'Harrel.C.Index'      = harrel_c,
     # 'Uno.C.Index'         = uno_c,
     'C.Index.Uno'         = uno_c_auc,
-    'iAUC'                = iauc,
+    # 'iAUC'                = iauc,
     'iAUC.IQR'            = iauc2,
     'iAUC.Q10.Q90'        = iauc3,
     'iAUC.Full'           = iauc4,
@@ -102,14 +104,14 @@ get_fit_stats <- function(Surv_object, model, ibs=FALSE){
 
   if(ibs){
     # ibs1       <- SurvMetrics::IBS(Surv_object, sp_matrix = survprob , IBSrange = times)%>% as.numeric()  ### Vastly underestimates
-    ibs2       <- SurvMetrics::IBS(Surv_object, sp_matrix = survprob2, IBSrange = times_iqr)%>% as.numeric()
-    ibs3       <- SurvMetrics::IBS(Surv_object, sp_matrix = survprob3, IBSrange = times_wide)%>% as.numeric()
+    # ibs2       <- SurvMetrics::IBS(Surv_object, sp_matrix = survprob2, IBSrange = times_iqr)%>% as.numeric()
+    # ibs3       <- SurvMetrics::IBS(Surv_object, sp_matrix = survprob3, IBSrange = times_wide)%>% as.numeric()
     ibs4       <- SurvMetrics::IBS(Surv_object, sp_matrix = survprob4, IBSrange = times_full)%>% as.numeric()
     out <- c(
       out,
       # 'IBS'                 = ibs1,
-      'IBS.IQR'             = ibs2,
-      'IBS.Q10.Q90'         = ibs3,
+      # 'IBS.IQR'             = ibs2,
+      # 'IBS.Q10.Q90'         = ibs3,
       'IBS.Full'            = ibs4
     )
   }
@@ -123,9 +125,11 @@ if(F){
   ### MODEL PREP
   shotgun_dist_list()$lindley -> testdist
   shotgun_dist_list()$fatigue -> testdist2
+  shotgun_dist_list()$gompertz -> testdist3
 
   flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist, dfns = list(d=testdist$d, p=testdist$p)) -> pp4
   flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist2, dfns = list(d=testdist2$d, p=testdist2$p)) -> pp5
+  flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist3, dfns = list(d=testdist3$d, p=testdist3$p)) -> pp6
   flexsurvreg(survival::Surv(time,status) ~1, data=survival::cancer, dist= testdist2, dfns = list(d=testdist2$d, p=testdist2$p)) -> pp_ref
 
 
@@ -133,7 +137,11 @@ if(F){
   # examples
 
   get_fit_stats(Surv(cancer$time, cancer$status), model = pp4, ibs = F) -> cool
+  get_fit_stats(Surv(cancer$time, cancer$status), model = pp4, ibs = T) # much slower, but works
   get_fit_stats(Surv(cancer$time, cancer$status), model = pp5, ibs = F) -> cool2
+
+  get_fit_stats(Surv(cancer$time, cancer$status), model = pp6, ibs = F) -> cool3
+
   get_fit_stats(Surv(cancer$time, cancer$status), model = pp_ref, ibs = F) -> cool3
 
 }
