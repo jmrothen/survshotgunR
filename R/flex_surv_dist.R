@@ -334,7 +334,7 @@ shotgun_dist_list <- function(){
     location='b',
     transforms=c(log,log,log),
     inv.transforms=c(exp,exp,exp),
-    inits=function(t){c(log(2)/stats::median(t),1,stats::IQR(t)/stats::median(t))},
+    inits=function(t){c(log(2)/stats::median(t), 1, stats::IQR(t)/stats::median(t))},
     d=dgamgomp,
     p=pgamgomp,
     h = hazardify(dgamgomp, pgamgomp),

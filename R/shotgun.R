@@ -13,6 +13,8 @@
 #' @param spline Vector. Should include 'rp' for Royston-Parmar natural cubic spline. Can also include 'wy' for Wang-Yan alternative natural cubic spline. The Wang-Yan version requires the package 'splines2ns'.
 #' @param max_knots Integer. Specifies the maximum number of knots considered in spline models.
 #' @param coxph Logical. If TRUE, calculates a Cox Proportional Hazard Model as well. Please note that is not recommended to directly compare the AIC/BIC/LogLik of Cox models to Parametric models
+#' @param detailed Logical. If True, calculates a number of additional fit statistics for each model.
+#' @param ibs Logical. If TRUE, calculate integrated brier score for each model. Please note that this greatly increases run time, and is not recommended for extremely large data.
 #' @returns Data frame summarizing each model, and some general goodness of fit measures.
 #'
 #' @examples
@@ -28,8 +30,10 @@ surv_shotgun <- function(
     progress=T,
     warn=F,
     spline=c('rp'),
-    max_knots=5,
-    coxph=F
+    max_knots=2,
+    coxph=F,
+    detailed=T,
+    ibs=F
 ){
   # The default shotgun list will exclude the following. Comments describe why
   if(length(skip)==1 & skip[1]=='default'){
@@ -72,10 +76,7 @@ surv_shotgun <- function(
     else{
       data_req <-T
     }
-  }
-
-  # if we don't have a data frame
-  else{
+  }else{ # if we don't have a data frame
 
     # check if we have formula variables in global
     if(!all(in_global)){
@@ -95,6 +96,13 @@ surv_shotgun <- function(
     bic = 1,
     loglik = 1
   )[-1,]
+
+  if(detailed){
+    dist_summary <- dplyr::mutate(
+      dist_summary,
+      iAUC=1, Cindex=1, Unos.C=1, Brier.Median=1, MAE=1, IAE=1, ISE=1, IBS=1
+    )
+  }
 
   # iterate through each distribution, creating the model if possible and storing results
   iter <- 1
@@ -122,6 +130,14 @@ surv_shotgun <- function(
     current_aic <- NA
     current_bic <- NA
     current_ll <- NA
+    current_iAUC <- NA
+    current_Cindex <- NA
+    current_Unos.C <- NA
+    current_brier <- NA
+    current_mae <- NA
+    current_iae <- NA
+    current_ise <- NA
+    current_ibs <- NA
 
     # attempt to perform regression
     tryCatch({
@@ -130,15 +146,13 @@ surv_shotgun <- function(
       withCallingHandlers({
 
         # if working with a native distribution, we'll not specify the <dfns> argument
-        if(!custom_indicator)
+        if(!custom_indicator){
           if(data_req){
             flexsurv::flexsurvreg(formula, dist=current_dist, data=data) %>% suppressMessages() -> current_model
           }else{
             flexsurv::flexsurvreg(formula, dist=current_dist) %>% suppressMessages() -> current_model
           }
-
-        # for custom distributions, we specify the DFNs
-        else{
+        }else{ # for custom distributions, we specify the DFNs
           if(data_req){
             flexsurv::flexsurvreg(formula, dist=i, data=data, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
           }else{
@@ -150,7 +164,29 @@ surv_shotgun <- function(
         current_aic <- stats::AIC(current_model)
         current_bic <- stats::BIC(current_model)
         current_ll <- current_model$loglik
+
         dist_success<-T
+
+        if(detailed){
+        ### should add the case to pase Surv functions of the form Surv(time1, time2, status), which would use length(formula[[2]])
+          if(data_req){
+            time_portion <-   dplyr::pull(data[c(as.character(formula[[2]][[2]]))])
+            status_portion <- dplyr::pull(data[c(as.character(formula[[2]][[3]]))])
+            Surv_object <- survival::Surv(time_portion, status_portion)
+          }else{
+            Surv_object <- survival::Surv(formula[[2]][[2]], formula[[2]][[3]])
+          }
+          fitstats <- get_fit_stats(Surv_object, model = current_model, ibs)
+
+          current_iAUC <- fitstats$iAUC.Full
+          current_Cindex <- fitstats$C.Index
+          current_Unos.C <- fitstats$C.Index.Uno
+          current_brier <- fitstats$Brier.Median
+          current_mae <- fitstats$MAE
+          current_iae <- fitstats$IAE.Full
+          current_ise <- fitstats$ISE.Full
+          current_ibs <- ifelse(ibs, fitstats$IBS.Full, NA)
+        }
       },
 
       # warnings are very common in flexsurv / optim, so if we get one, we conditionally print and continue
@@ -166,10 +202,18 @@ surv_shotgun <- function(
     })
 
     # add current iteration's results to our progress dataframe
-    dist_summary %>%
-      dplyr::add_row(
-        dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
-      ) -> dist_summary
+    if(detailed){
+      dist_summary %>%
+        dplyr::add_row(
+          dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll,
+          iAUC=current_iAUC, Cindex=current_Cindex, Unos.C=current_Unos.C, Brier.Median=current_brier, MAE=current_mae, IAE=current_iae, ISE=current_ise, IBS=current_ibs
+        ) -> dist_summary
+    }else{
+      dist_summary %>%
+        dplyr::add_row(
+          dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
+        ) -> dist_summary
+    }
 
     # if we are model dumping, we assign the model to the global environment with name fssg_<model name>
     if(dump_models & dist_success){
@@ -188,7 +232,7 @@ surv_shotgun <- function(
   if('rp' %in% spline  | 'wy' %in% spline){
 
     # RP works on it's own, but if we also want to try the 'natural cubic spline', we need splines2
-    if('wy' %in% spline){requireNamespace('splines2')}
+    # if('wy' %in% spline){requireNamespace('splines2')}
 
     # optional progress tracking chunk
     if(progress){
@@ -222,6 +266,14 @@ surv_shotgun <- function(
       current_aic <- NA
       current_bic <- NA
       current_ll <- NA
+      current_iAUC <- NA
+      current_Cindex <- NA
+      current_Unos.C <- NA
+      current_brier <- NA
+      current_mae <- NA
+      current_iae <- NA
+      current_ise <- NA
+      current_ibs <- NA
 
       tryCatch({
 
@@ -239,7 +291,29 @@ surv_shotgun <- function(
           current_aic <- stats::AIC(current_model)
           current_bic <- stats::BIC(current_model)
           current_ll <- current_model$loglik
+
           dist_success<-T
+
+          if(detailed){
+            ### should add the case to pase Surv functions of the form Surv(time1, time2, status), which would use length(formula[[2]])
+            if(data_req){
+              time_portion <-   dplyr::pull(data[c(as.character(formula[[2]][[2]]))])
+              status_portion <- dplyr::pull(data[c(as.character(formula[[2]][[3]]))])
+              Surv_object <- survival::Surv(time_portion, status_portion)
+            }else{
+              Surv_object <- survival::Surv(formula[[2]][[2]], formula[[2]][[3]])
+            }
+            fitstats <- get_fit_stats(Surv_object, model = current_model, ibs)
+
+            current_iAUC <- fitstats$iAUC.Full
+            current_Cindex <- fitstats$C.Index
+            current_Unos.C <- fitstats$C.Index.Uno
+            current_brier <- fitstats$Brier.Median
+            current_mae <- fitstats$MAE
+            current_iae <- fitstats$IAE.Full
+            current_ise <- fitstats$ISE.Full
+            current_ibs <- ifelse(ibs, fitstats$IBS.Full, NA)
+          }
         },
 
         # warnings are very common in flexsurv / optim, so if we get one, we conditionally print and continue
@@ -256,10 +330,18 @@ surv_shotgun <- function(
 
       # If spline succeeds, we add, otherwise don't (prevents clutter)
       if(dist_success){
-        dist_summary %>%
-          dplyr::add_row(
-            dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
-          ) -> dist_summary
+        if(detailed){
+          dist_summary %>%
+            dplyr::add_row(
+              dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll,
+              iAUC=current_iAUC, Cindex=current_Cindex, Unos.C=current_Unos.C, Brier.Median=current_brier, MAE=current_mae, IAE=current_iae, ISE=current_ise, IBS=current_ibs
+            ) -> dist_summary
+        }else{
+          dist_summary %>%
+            dplyr::add_row(
+              dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
+            ) -> dist_summary
+        }
 
         # if we are model dumping, we assign the model to the global environment with name fssg_<model name>
         if(dump_models & dist_success){
@@ -348,20 +430,119 @@ surv_shotgun <- function(
   message('------------------------------------------------------------------------')
   message('Final Summary!')
 
-  # identify models with lowest AIC, BIC, or highest LogLik  <PLANNING TO ADD MORE STATS>
-  dist_summary %>% dplyr::filter(!is.na(aic)) %>% dplyr::filter(aic== min(aic))       %>% dplyr::select(dist_name) %>% dplyr::pull() -> best_aic
-  dist_summary %>% dplyr::filter(!is.na(aic)) %>% dplyr::filter(bic== min(bic))       %>% dplyr::select(dist_name) %>% dplyr::pull() -> best_bic
-  dist_summary %>% dplyr::filter(!is.na(aic)) %>% dplyr::filter(loglik== max(loglik)) %>% dplyr::select(dist_name) %>% dplyr::pull() -> best_ll
+  ##### We want to aggregate the bests fit via statistics
+  dist_summary %>%
+    dplyr::mutate(
+      best_aic = ('aic'== min('aic',na.rm=T)),  # lower = better
+      best_bic = ('bic'== min('bic',na.rm=T)),  # lower = better
+      best_loglik = ('loglik'== max('loglik',na.rm=T)) # greater = better
+    ) -> dist_summary
 
-  message(paste('Model with best AIC:',best_aic))
-  message(paste('Model with best BIC:',best_bic))
-  message(paste('Model with best Log Likelihood:',best_ll))
+  if(detailed){
+    dist_summary %>%
+      dplyr::mutate(
+        best_iauc = ('iAUC'== max('iAUC',na.rm=T)), # greater = better
+        best_cin = ('Cindex'== max('Cindex',na.rm=T)), # greater = better
+        best_uno = ('Unos.C'== max('Unos.C',na.rm=T)), # greater = better
+        best_bri = ('Brier.Median'== min('Brier.Median', na.rm=T)), # lower = better
+        best_mae = ('MAE'== min('MAE',na.rm=T)), # lower = better
+        best_iae = ('IAE'== min('IAE',na.rm=T)), # lower = better
+        best_ise = ('ISE'== min('ISE',na.rm=T)) # lower = better
+      ) -> dist_summary
+
+    if(ibs){
+      dist_summary %>% dplyr::mutate(
+        best_ibs = ('IBS'== min('IBS',na.rm=T)), # lower = better
+      ) -> dist_summary
+    }
+  }
+
+  # if(detailed){
+  #   if(!ibs){
+  #     dist_summary %>% dplyr::mutate(
+  #       fitscore = ifelse(is.na(best_aic), 0, best_aic)  +
+  #         ifelse(is.na(best_bic), 0, best_bic) +
+  #         ifelse(is.na(best_loglik), 0, best_loglik)+
+  #         ifelse(is.na(best_iauc), 0, best_iauc) +
+  #         ifelse(is.na(best_cin), 0, best_cin) +
+  #         ifelse(is.na(best_uno), 0, best_uno)+
+  #         ifelse(is.na(best_bri), 0, best_bri) +
+  #         ifelse(is.na(best_mae), 0, best_mae) +
+  #         ifelse(is.na(best_iae), 0, best_iae) +
+  #         ifelse(is.na(best_ise), 0, best_ise)
+  #     ) -> dist_summary
+  #   }else{
+  #     dist_summary %>% dplyr::mutate(
+  #       fitscore = ifelse(is.na(best_aic), 0, best_aic)  +
+  #         ifelse(is.na(best_bic), 0, best_bic) +
+  #         ifelse(is.na(best_loglik), 0, best_loglik)+
+  #         ifelse(is.na(best_iauc), 0, best_iauc) +
+  #         ifelse(is.na(best_cin), 0, best_cin) +
+  #         ifelse(is.na(best_uno), 0, best_uno)+
+  #         ifelse(is.na(best_bri), 0, best_bri) +
+  #         ifelse(is.na(best_mae), 0, best_mae) +
+  #         ifelse(is.na(best_iae), 0, best_iae) +
+  #         ifelse(is.na(best_ise), 0, best_ise) +
+  #         ifelse(is.na(best_ibs), 0, best_ibs)
+  #     ) -> dist_summary
+  #   }
+  # }else{
+  #   dist_summary %>%
+  #     dplyr::mutate(
+  #       fitscore = ifelse(is.na(best_aic), 0, best_aic)  + ifelse(is.na(best_bic), 0, best_bic) + ifelse(is.na(best_loglik), 0, best_loglik)
+  #     ) -> dist_summary
+  # }
+
+  # dist_summary %>%
+  #   dplyr::filter(!is.na(fitscore)) %>%
+  #   dplyr::filter(fitscore == max(fitscore, na.rm=T)) %>%
+  #   dplyr::select(dist_name) %>%
+  #   dplyr::pull() -> best_models
+
+  message(paste('Model with best AIC:', paste(dplyr::filter(dist_summary, 'best_aic'==TRUE)$dist_name, collapse=', ')))
+  message(paste('Model with best BIC:', paste(dplyr::filter(dist_summary, 'best_bic'==TRUE)$dist_name, collapse=', ')))
+
+  if(detailed){
+    if(length(dplyr::filter(dist_summary, best_iauc=TRUE)$dist_name) >5){
+      message(paste('Many Models tied for best iAUC'))
+    }else{
+      message(paste('Model with best iAUC:', paste(dplyr::filter(dist_summary, 'best_iauc'=TRUE)$dist_name, collapse=', ')))
+    }
+
+    if(length(dplyr::filter(dist_summary, best_cin=TRUE)$dist_name) >5){
+      message(paste('Many Models tied for best C-index'))
+    }else{
+      message(paste('Model with best C-index:', paste(dplyr::filter(dist_summary, 'best_cin'==TRUE)$dist_name, collapse=', ')))
+    }
+  }
+
+
+  if(ibs){
+    message(paste('Model with best IBS:', paste(dplyr::filter(dist_summary, 'best_ibs'==TRUE)$dist_name, collapse=', ')))
+  }else{
+    dist_summary %>% dplyr::select(-'IBS') -> dist_summary
+  }
+
+  for(q in colnames(dist_summary)){
+    if(grepl('best',q)){
+      dist_summary %>% dplyr::select(-as.character(q)) -> dist_summary
+    }
+  }
 
   # end overall timer (aka fire the shotgun)
   tictoc::toc(quiet=T)$callback_msg %>% message()
 
   # output is a data-frame, one row for each attempted model
-  dist_summary %>% dplyr::arrange(aic, bic, dplyr::desc(loglik)) %>% return()
+  if(detailed){
+    if(ibs){
+      dist_summary %>% dplyr::arrange('aic', 'bic', dplyr::desc('IBS'), 'iAUC', 'Cindex') -> out
+    }else{
+      dist_summary %>% dplyr::arrange('aic', 'bic', 'iAUC', 'Cindex') -> out
+    }
+  }else{
+    dist_summary %>% dplyr::arrange('aic', 'bic', dplyr::desc('loglik')) -> out
+  }
+  return(out)
 }
 
 
@@ -377,10 +558,10 @@ if(F){
   # flexsurvreg(survival::Surv(time, status) ~ 1, data = survival::aml, dist = 'exp')
 
   # simple model tests
-  surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::aml,    dump_models = T, warn = F, spline=c('rp','wy'))
-  surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::cancer, dump_models = T, warn = F)
+  surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::aml,    dump_models = T, warn = F, spline=c('rp','wy'), detailed = T, ibs=T) -> test_models
+  surv_shotgun(survival::Surv(time, status) ~ 1, data = survival::cancer, dump_models = T, warn = F) -> test_models2
 
   # single variable models
-  surv_shotgun(survival::Surv(time, status) ~ factor(x),   data = survival::aml,    dump_models = T, warn = F)
-  surv_shotgun(survival::Surv(time, status) ~ factor(sex), data = survival::cancer, dump_models = T, warn = F)
+  surv_shotgun(survival::Surv(time, status) ~ x,   data = survival::aml,    dump_models = T, warn = F) -> test_models3
+  surv_shotgun(survival::Surv(time, status) ~ sex, data = survival::cancer, dump_models = T, warn = F) -> test_models4
 }

@@ -12,8 +12,10 @@ surv_shotgun(
   progress = T,
   warn = F,
   spline = c("rp"),
-  max_knots = 5,
-  coxph = F
+  max_knots = 2,
+  coxph = F,
+  detailed = T,
+  ibs = F
 )
 }
 \arguments{
@@ -34,6 +36,10 @@ surv_shotgun(
 \item{max_knots}{Integer. Specifies the maximum number of knots considered in spline models.}
 
 \item{coxph}{Logical. If TRUE, calculates a Cox Proportional Hazard Model as well. Please note that is not recommended to directly compare the AIC/BIC/LogLik of Cox models to Parametric models}
+
+\item{detailed}{Logical. If True, calculates a number of additional fit statistics for each model.}
+
+\item{ibs}{Logical. If TRUE, calculate integrated brier score for each model. Please note that this greatly increases run time, and is not recommended for extremely large data.}
 }
 \value{
 Data frame summarizing each model, and some general goodness of fit measures.
