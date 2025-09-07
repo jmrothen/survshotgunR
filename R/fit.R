@@ -118,30 +118,3 @@ get_fit_stats <- function(Surv_object, model, ibs=FALSE){
 
   return(out)
 }
-
-
-
-if(F){
-  ### MODEL PREP
-  shotgun_dist_list()$lindley -> testdist
-  shotgun_dist_list()$fatigue -> testdist2
-  shotgun_dist_list()$gompertz -> testdist3
-
-  flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist, dfns = list(d=testdist$d, p=testdist$p)) -> pp4
-  flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist2, dfns = list(d=testdist2$d, p=testdist2$p)) -> pp5
-  flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist3, dfns = list(d=testdist3$d, p=testdist3$p)) -> pp6
-  flexsurvreg(survival::Surv(time,status) ~1, data=survival::cancer, dist= testdist2, dfns = list(d=testdist2$d, p=testdist2$p)) -> pp_ref
-
-
-
-  # examples
-
-  get_fit_stats(Surv(cancer$time, cancer$status), model = pp4, ibs = F) -> cool
-  get_fit_stats(Surv(cancer$time, cancer$status), model = pp4, ibs = T) # much slower, but works
-  get_fit_stats(Surv(cancer$time, cancer$status), model = pp5, ibs = F) -> cool2
-
-  get_fit_stats(Surv(cancer$time, cancer$status), model = pp6, ibs = F) -> cool3
-
-  get_fit_stats(Surv(cancer$time, cancer$status), model = pp_ref, ibs = F) -> cool3
-
-}
