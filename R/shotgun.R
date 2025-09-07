@@ -459,48 +459,6 @@ surv_shotgun <- function(
     }
   }
 
-  # if(detailed){
-  #   if(!ibs){
-  #     dist_summary %>% dplyr::mutate(
-  #       fitscore = ifelse(is.na(best_aic), 0, best_aic)  +
-  #         ifelse(is.na(best_bic), 0, best_bic) +
-  #         ifelse(is.na(best_loglik), 0, best_loglik)+
-  #         ifelse(is.na(best_iauc), 0, best_iauc) +
-  #         ifelse(is.na(best_cin), 0, best_cin) +
-  #         ifelse(is.na(best_uno), 0, best_uno)+
-  #         ifelse(is.na(best_bri), 0, best_bri) +
-  #         ifelse(is.na(best_mae), 0, best_mae) +
-  #         ifelse(is.na(best_iae), 0, best_iae) +
-  #         ifelse(is.na(best_ise), 0, best_ise)
-  #     ) -> dist_summary
-  #   }else{
-  #     dist_summary %>% dplyr::mutate(
-  #       fitscore = ifelse(is.na(best_aic), 0, best_aic)  +
-  #         ifelse(is.na(best_bic), 0, best_bic) +
-  #         ifelse(is.na(best_loglik), 0, best_loglik)+
-  #         ifelse(is.na(best_iauc), 0, best_iauc) +
-  #         ifelse(is.na(best_cin), 0, best_cin) +
-  #         ifelse(is.na(best_uno), 0, best_uno)+
-  #         ifelse(is.na(best_bri), 0, best_bri) +
-  #         ifelse(is.na(best_mae), 0, best_mae) +
-  #         ifelse(is.na(best_iae), 0, best_iae) +
-  #         ifelse(is.na(best_ise), 0, best_ise) +
-  #         ifelse(is.na(best_ibs), 0, best_ibs)
-  #     ) -> dist_summary
-  #   }
-  # }else{
-  #   dist_summary %>%
-  #     dplyr::mutate(
-  #       fitscore = ifelse(is.na(best_aic), 0, best_aic)  + ifelse(is.na(best_bic), 0, best_bic) + ifelse(is.na(best_loglik), 0, best_loglik)
-  #     ) -> dist_summary
-  # }
-
-  # dist_summary %>%
-  #   dplyr::filter(!is.na(fitscore)) %>%
-  #   dplyr::filter(fitscore == max(fitscore, na.rm=T)) %>%
-  #   dplyr::select(dist_name) %>%
-  #   dplyr::pull() -> best_models
-
   message(paste('Model with best AIC:', paste(dplyr::filter(dist_summary, best_aic==TRUE)$dist_name, collapse=', ')))
   message(paste('Model with best BIC:', paste(dplyr::filter(dist_summary, best_bic==TRUE)$dist_name, collapse=', ')))
 
