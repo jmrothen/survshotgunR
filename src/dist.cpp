@@ -51,8 +51,10 @@ double perlang_raw(double x, int k, double l, bool lower_tail=true, bool log_p=f
     }
     double p = 1.0 - std::exp(-lambda_x) * s;
     if(p<1e-15)p=1e-15;   //clamp??
-    F = log_p ? std::log(p): p;
-    F = lower_tail ? F : 1-F;
+
+    F = lower_tail ? p : 1-p;
+    F = log_p ? std::log(F): F;
+
   }
   return F;
 }
@@ -135,8 +137,9 @@ double pgamgomp_raw(double x, double b, double s, double beta, bool lower_tail=t
     double bx = b*x;
     double bot = beta-1+std::exp(bx);
     double test = 1 - (pow(beta,s) / pow(bot,s));
-    F = log_p ? std::log(test) : test;
-    F = lower_tail ? F : 1-F;
+
+    F = lower_tail ? test : 1-test;
+    F = log_p ? std::log(F): F;
   }
   return F;
 }
@@ -226,8 +229,8 @@ double plogcauchy_raw(double x, double mu, double sigma, bool lower_tail=true, b
     const double pi = 3.14159265358979323846;
     double norm = (std::log(x) - mu)/sigma;
     double term = .5 + (std::atan(norm) / pi);
-    F = log_p ? std::log(term) : term;
-    F = lower_tail ? F : 1-F;
+    F = lower_tail ? term : 1-term;
+    F = log_p ? std::log(F): F;
   }
   return F;
 }
@@ -323,8 +326,8 @@ double phypertab_raw(double x, double a, double b, bool lower_tail=true, bool lo
     double xb = pow(x,b);
     double term1 = a * (1 - xb * coth(xb)) / b;
     double term2 = 1 - sech(term1);
-    F = log_p ? std::log(term2) : term2;
-    F = lower_tail ? F : 1-F;
+    F = lower_tail ? term2 : 1-term2;
+    F = log_p ? std::log(F): F;
   }
   return F;
 }
@@ -401,8 +404,8 @@ double pinvlind_raw(double x, double theta, bool lower_tail=true, bool log_p=fal
     F = log_p ? R_NegInf : 0.0;
   }else{
     double term = (1 + ((theta/(1+theta))/x)) * std::exp(-theta/x);
-    F = log_p ? std::log(term) : term;
-    F = lower_tail ? F : 1-F;
+    F = lower_tail ? term : 1-term;
+    F = log_p ? std::log(F): F;
   }
   return F;
 }
@@ -449,83 +452,3 @@ NumericVector pinvlind_c(
 
   return F;
 }
-
-
-
-/*** R
-# old wrappers that have been deprecated
-
-# perlang <- function(q, k, l, lower.tail=T, log.p=F){
-#   mapply(function(qq, kk, ll) {
-#     p <- perlang_raw(qq,kk,ll,F)
-#     if(!lower.tail){p <- 1-p}
-#     if(log.p){p <- log(p)}
-#     p
-#   }, q,k,l)
-# }
-#
-# pgamgomp <- function(q,b,s,beta, lower.tail=T, log.p=F){
-#   mapply(function(qq, bb, ss, BB) {
-#     p <- pgamgomp_raw(qq,bb,ss,BB,F)
-#     if(!lower.tail){p <- 1-p}
-#     if(log.p){p <- log(p)}
-#     p
-#   }, q, b, s, beta)
-# }
-#
-# plogcauchy <- function(q, mu, sigma, lower.tail=T, log.p=F){
-#   mapply(function(qq, mm, ss) {
-#     p <- plogcauchy_raw(qq,mm,ss,F)
-#     if(!lower.tail){p <- 1-p}
-#     if(log.p){p <- log(p)}
-#     p
-#   }, q, mu, sigma)
-# }
-#
-# phypertab <- function(q, a, b, lower.tail=T, log.p=F){
-#   mapply(function(qq, aa, bb) {
-#     p <- phypertab_raw(qq,aa,bb,F)
-#     if(!lower.tail){p <- 1-p}
-#     if(log.p){p <- log(p)}
-#     p
-#   }, q, a, b)
-# }
-#
-# pinvlind <- function(q, theta, lower.tail=T, log.p=F){
-#   mapply(function(qq, tt) {
-#     p <- pinvlind_raw(qq,tt,F)
-#     if(!lower.tail){p <- 1-p}
-#     if(log.p){p <- log(p)}
-#     p
-#   }, q, theta)
-# }
-
-
-# perlang_v2    <- Vectorize(perlang_raw)
-# pgamgomp_v2   <- Vectorize(pgamgomp_raw)
-# plogcauchy_v2 <- Vectorize(plogcauchy_raw)
-# phypertab_v2  <- Vectorize(phypertab_raw)
-# pinvlind_v2   <- Vectorize(pinvlind_raw)
-
-
-# derlang_raw(1,1,1)
-# derlang(1,1,1)         # should be 0.3678794
-# perlang_raw(1,1,1)     # should be 0.6321206
-# perlang(1,1,1)         # should be 0.6321206
-
-# dgamgomp(0,.4,1,3)     # should be ~ 0.1333333
-# pgamgomp_raw(1,.4,1,3) # should be ~ 0.1408503
-# pgamgomp(1,.4,1,3)     # should be ~ 0.1408503
-#
-# dlogcauchy(1,1,1)      # should be ~ 0.1591549
-# plogcauchy_raw(1,1,1)  # should be .25
-# plogcauchy(1,1,1)      # should be .25
-#
-# dhypertab(1,1,1)       # should be .1701686
-# phypertab_raw(1,1,1)   # should be .04707175
-# phypertab(1,1,1)       # should be .04707175
-#
-# dinvlind(1,1)          # .3678794
-# pinvlind_raw(1,1)      # .5518192
-# pinvlind(1,1)          # .5518192
-*/
