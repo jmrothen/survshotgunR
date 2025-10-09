@@ -5,4 +5,4 @@
 R/scrapped/
 dev_notes/
 .Rprofile
-.Rproj
+*.Rproj
