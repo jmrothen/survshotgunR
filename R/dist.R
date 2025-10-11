@@ -51,13 +51,78 @@ cumhazardify <- function(p_func){
 
 
 
+#' Function to check if times can be calculated using the distribution with default inits.
+#'
+#' @param times Surv object or numeric vector.
+#' @param distribution A distribution object from shotgun_dist_lists.
+#' @returns Boolean indicator for success. If true, then all values can be calculated, and life is good.
+#' @export
+check_inits <- function(times, distribution){
+  # accepts a vector or Surv object
+  if(class(times)=='Surv'){
+    times[,1] %>%
+      as.numeric() %>%
+      unique() %>%
+      sort() -> time_vector
+  }else{
+    times[,1] %>%
+      as.numeric() %>%
+      unique() %>%
+      sort() -> time_vector
+  }
+
+  if('d' %in% names(distribution)){
+    dfunc <- distribution$d
+  }else{
+    dfunc <- get(paste('d', distribution$name, sep=''))
+  }
+
+  inits <- distribution$inits(time_vector)
+
+  dfunc %>%
+    formals() %>%
+    names() %>%
+    setdiff(c('log')) -> arguments
+
+
+  dataframe <- data.frame(t = time_vector, p = NA, s = F)
+
+  for(i in 1:length(time_vector)){
+    as.list(c(time_vector[i], inits)) %>%
+      setNames(c(arguments)) %>%
+      do.call(what=dfunc, args=.) -> dataframe$p[i]
+
+    dataframe$s[i] <- is.finite(dataframe$p[i])
+  }
+
+  if(!any(dataframe$s)){
+    message("Found some weird entries")
+
+    dataframe %>%
+      filter(s=F) %>%
+      print()
+  }else{
+    message("Works at every time point!")
+    plot(
+      x = dataframe$t[dataframe$s],
+      y = dataframe$p[dataframe$s],
+      type='o', main = 'Distribution with Default Inits',xlab = 'Times', ylab='Probability Density',sub=substitute(density_function))
+  }
+
+  return(any(dataframe$s))
+}
+
+
+
+
+
+
 #' Compiles list of available distributions
 #'
 #' @returns a list of all possible distributions
 #'
 #' @export
 shotgun_dist_list <- function(){
-
   # create a list item for each currently available distribution
 
   ### Beta Prime
@@ -67,7 +132,7 @@ shotgun_dist_list <- function(){
     location='scale',
     transforms= c(log,log,log),
     inv.transforms= c(exp,exp,exp),
-    inits= function(t){c(3, 2, 1)},
+    inits= function(t){c(3, 2, 1)},  # can be improved
     d = extraDistr::dbetapr,
     p = extraDistr::pbetapr,
     h = hazardify(extraDistr::dbetapr,extraDistr::pbetapr),
@@ -87,7 +152,7 @@ shotgun_dist_list <- function(){
     p = extraDistr::pfatigue,
     h = hazardify(extraDistr::dfatigue,extraDistr::pfatigue),
     H = cumhazardify(extraDistr::pfatigue),
-    fullname='birnbaum_saunders'
+    fullname='birnbaum_saunders_shape'
   )
 
   flexsurv_fatigue <- list(
@@ -115,7 +180,7 @@ shotgun_dist_list <- function(){
     p = extraDistr::pfatigue,
     h = hazardify(extraDistr::dfatigue,extraDistr::pfatigue),
     H = cumhazardify(extraDistr::pfatigue),
-    fullname='birnbaum_saunders'
+    fullname='birnbaum_saunders_shape_location'
   )
 
   flexsurv_fatigue_loc <- list(
@@ -129,10 +194,10 @@ shotgun_dist_list <- function(){
     p = extraDistr::pfatigue,
     h = hazardify(extraDistr::dfatigue,extraDistr::pfatigue),
     H = cumhazardify(extraDistr::pfatigue),
-    fullname='birnbaum_saunders'
+    fullname='birnbaum_saunders_location'
   )
 
-  ### Singh Madalla / burr t12
+  ### Singh Madalla aka Burr-T12
   flexsurv_sinmad  <- list(
     name='sinmad',
     pars = c('scale','shape1.a','shape3.q'), # scale, shape, shape
@@ -173,7 +238,7 @@ shotgun_dist_list <- function(){
     p= stats::pcauchy,
     h = hazardify(stats::dcauchy,  stats::pcauchy),
     H = cumhazardify(stats::pcauchy),
-    fullname='cauchy'
+    fullname='cauchy_location'
   )
 
   ### CHI SQUARED
@@ -283,7 +348,7 @@ shotgun_dist_list <- function(){
     fullname='noncentral_f'
   )
 
-  ### folded normal?
+  ### folded normal parameterized on mean (location)
   flexsurv_fnorm_loc <- list(
     name= 'foldnorm',
     pars = c('mean','sd','a1','a2'),
@@ -295,9 +360,10 @@ shotgun_dist_list <- function(){
     p= VGAM::pfoldnorm,
     h = hazardify(VGAM::dfoldnorm, VGAM::pfoldnorm),
     H = cumhazardify(VGAM::pfoldnorm),
-    fullname='folded_normal'
+    fullname='folded_normal_location'
   )
 
+  ### Folded normal, parameterized on scale
   flexsurv_fnorm <- list(
     name= 'foldnorm',
     pars = c('mean','sd','a1','a2'),
@@ -334,7 +400,7 @@ shotgun_dist_list <- function(){
     location='b',
     transforms=c(log,log,log),
     inv.transforms=c(exp,exp,exp),
-    inits=function(t){c(log(2)/stats::median(t), 1, stats::IQR(t)/stats::median(t))},
+    inits=function(t){c(1/max(t), 1, 1)},
     d=dgamgomp,
     p=pgamgomp,
     h = hazardify(dgamgomp, pgamgomp),
@@ -415,7 +481,7 @@ shotgun_dist_list <- function(){
     p=VGAM::pinv.gaussian,
     h = hazardify(VGAM::dinv.gaussian, VGAM::pinv.gaussian),
     H = cumhazardify(VGAM::pinv.gaussian),
-    fullname='inverse_gaussian'
+    fullname='inverse_gaussian_location'
   )
 
   flexsurv_invgaus <- list(
@@ -474,7 +540,7 @@ shotgun_dist_list <- function(){
     p=plogcauchy,
     h = hazardify(dlogcauchy, plogcauchy),
     H = cumhazardify(plogcauchy),
-    fullname='log_cauchy'
+    fullname='log_cauchy_location'
   )
 
   flexsurv_logcauchy <- list(
@@ -506,6 +572,7 @@ shotgun_dist_list <- function(){
     fullname='lomax'
   )
 
+  ### Lomax shape parameter
   flexsurv_lomax_shape <- list(
     name='lomax',
     pars=c('lambda','kappa'), # scale, shape?
@@ -517,7 +584,7 @@ shotgun_dist_list <- function(){
     p=extraDistr::plomax,
     h = hazardify(extraDistr::dlomax, extraDistr::plomax),
     H = cumhazardify(extraDistr::plomax),
-    fullname='lomax'
+    fullname='lomax_shape'
   )
 
   ### nakagami
@@ -652,7 +719,7 @@ shotgun_dist_list <- function(){
     p=VGAM::price,
     h = hazardify(VGAM::drice, VGAM::price),
     H = cumhazardify(VGAM::price),
-    fullname='rice'
+    fullname='rice_location'
   )
 
   flexsurv_rice <- list(
@@ -703,7 +770,7 @@ shotgun_dist_list <- function(){
   flexsurv_hypertab_a <- list(
     name='hypertab',
     pars= c('a','b'),
-    location= 'a', # could also be B, worth trying
+    location= 'a',
     transforms= c(log,log),
     inv.transforms= c(exp,exp),
     inits= function(t){c(1,1/mean(t))},
@@ -717,7 +784,7 @@ shotgun_dist_list <- function(){
   flexsurv_hypertab_b <- list(
     name='hypertab',
     pars= c('a','b'),
-    location= 'b', # could also be B, worth trying
+    location= 'b',
     transforms= c(log,log),
     inv.transforms= c(exp,exp),
     inits= function(t){c(1,1/mean(t))},
