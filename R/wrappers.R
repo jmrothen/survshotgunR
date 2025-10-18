@@ -43,7 +43,7 @@ perlang <- function(q, k, l, lower.tail = TRUE, log.p = FALSE) {
 #'
 #' @param x vector of quantiles.
 #' @param b scale paramater, must be greater than 0.
-#' @param s,beta shape parameters, must be greater than 0.
+#' @param sigma,beta shape parameters, must be greater than 0.
 #' @param log logical: if TRUE, log of probability is returned.
 #' @returns Probabilities for quantiles x.
 #'
@@ -52,8 +52,8 @@ perlang <- function(q, k, l, lower.tail = TRUE, log.p = FALSE) {
 #'
 #'
 #' @export
-dgamgomp <- function(x, b, s, beta, log = FALSE) {
-  return(dgamgomp_c(x, b, s, beta, log))
+dgamgomp <- function(x, b, sigma, beta, log = FALSE) {
+  return(dgamgomp_c(x, b, sigma, beta, log))
 }
 
 
@@ -63,7 +63,7 @@ dgamgomp <- function(x, b, s, beta, log = FALSE) {
 #'
 #' @param q vector of quantiles.
 #' @param b scale paramater, must be greater than 0.
-#' @param s,beta shape parameters, must be greater than 0.
+#' @param sigma,beta shape parameters, must be greater than 0.
 #' @param lower.tail logical: if TRUE, returns densities from 0 to q, otherwise q to 1.
 #' @param log.p logical: if TRUE, log of probability is returned.
 #' @returns Probabilities for quantiles q.
@@ -73,8 +73,8 @@ dgamgomp <- function(x, b, s, beta, log = FALSE) {
 #'
 #'
 #' @export
-pgamgomp <- function(q, b, s, beta, lower.tail = TRUE, log.p = FALSE) {
-  return(pgamgomp_c(q, b, s, beta, lower.tail, log.p))
+pgamgomp <- function(q, b, sigma, beta, lower.tail = TRUE, log.p = FALSE) {
+  return(pgamgomp_c(q, b, sigma, beta, lower.tail, log.p))
 }
 
 

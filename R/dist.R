@@ -396,7 +396,7 @@ shotgun_dist_list <- function(){
   ### Gamma-Gompertz
   flexsurv_gamgomp <- list(
     name='gamgomp',
-    pars=c('b','s','beta'), # scale, shape, shape
+    pars=c('b','sigma','beta'), # scale, shape, shape
     location='b',
     transforms=c(log,log,log),
     inv.transforms=c(exp,exp,exp),
