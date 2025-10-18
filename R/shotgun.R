@@ -12,9 +12,9 @@
 #' @param warn Logical. If TRUE, also prints any warnings that appear.
 #' @param spline Vector. Should include 'rp' for Royston-Parmar natural cubic spline. Can also include 'wy' for Wang-Yan alternative natural cubic spline. The Wang-Yan version requires the package 'splines2ns'.
 #' @param max_knots Integer. Specifies the maximum number of knots considered in spline models.
-#' @param coxph Logical. If TRUE, calculates a Cox Proportional Hazard Model as well. Please note that is not recommended to directly compare the AIC/BIC/LogLik of Cox models to Parametric models
 #' @param detailed Logical. If True, calculates a number of additional fit statistics for each model.
 #' @param ibs Logical. If TRUE, calculate integrated brier score for each model. Please note that this greatly increases run time, and is not recommended for extremely large data.
+#' @param opt_method String. By default, 'BFGS' is used in flexsurvreg, however some distributions appreciate the more flexible 'Nelder-Mead' method. This is passed to the "optim" function as method = opt_method.
 #' @returns Data frame summarizing each model, and some general goodness of fit measures.
 #'
 #' @examples
@@ -31,9 +31,9 @@ surv_shotgun <- function(
     warn=F,
     spline=c('rp'),
     max_knots=2,
-    coxph=F,
     detailed=T,
-    ibs=F
+    ibs=F,
+    opt_method = 'BFGS'
 ){
   # The default shotgun list will exclude the following. Comments describe why
   if(length(skip)==1 & skip[1]=='default'){
@@ -148,15 +148,15 @@ surv_shotgun <- function(
         # if working with a native distribution, we'll not specify the <dfns> argument
         if(!custom_indicator){
           if(data_req){
-            flexsurv::flexsurvreg(formula, dist=current_dist, data=data) %>% suppressMessages() -> current_model
+            flexsurv::flexsurvreg(formula, dist=current_dist, data=data, method=opt_method) %>% suppressMessages() -> current_model
           }else{
-            flexsurv::flexsurvreg(formula, dist=current_dist) %>% suppressMessages() -> current_model
+            flexsurv::flexsurvreg(formula, dist=current_dist, method=opt_method) %>% suppressMessages() -> current_model
           }
         }else{ # for custom distributions, we specify the DFNs
           if(data_req){
-            flexsurv::flexsurvreg(formula, dist=i, data=data, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
+            flexsurv::flexsurvreg(formula, dist=i, data=data, dfns=list(d=i$d, p=i$p), method=opt_method) %>% suppressMessages() -> current_model
           }else{
-            flexsurv::flexsurvreg(formula, dist=i, dfns=list(d=i$d, p=i$p)) %>% suppressMessages() -> current_model
+            flexsurv::flexsurvreg(formula, dist=i, dfns=list(d=i$d, p=i$p), method=opt_method) %>% suppressMessages() -> current_model
           }
         }
 
@@ -282,9 +282,9 @@ surv_shotgun <- function(
 
           # cycle through our spline options
           if(data_req){
-            flexsurv::flexsurvspline(formula, data=data, k=kvec[s], scale=svec[s], spline=mvec[s]) %>% suppressMessages() -> current_model
+            flexsurv::flexsurvspline(formula, data=data, k=kvec[s], scale=svec[s], spline=mvec[s], method=opt_method) %>% suppressMessages() -> current_model
           }else{
-            flexsurv::flexsurvspline(formula, k=kvec[s], scale=svec[s], spline=mvec[s]) %>% suppressMessages() -> current_model
+            flexsurv::flexsurvspline(formula, k=kvec[s], scale=svec[s], spline=mvec[s], method=opt_method) %>% suppressMessages() -> current_model
           }
 
           # if model succeeds, collect information
@@ -355,73 +355,6 @@ surv_shotgun <- function(
       tictoc::toc(quiet =T)$callback_msg %>% message()
     }
 
-  }
-
-  # simple Coxph section
-  if(coxph){
-
-    current_dist <- 'coxph'
-    current_source <- 'survival'
-
-    # optional progress tracking chunk
-    if(progress){
-      message('------------------------------------------------------------------------')
-      message(current_dist)
-      tictoc::tic(current_dist)
-    }
-
-    # reset iteration level variables
-    dist_success<- F
-    current_aic <- NA
-    current_bic <- NA
-    current_ll <- NA
-
-    tryCatch({
-
-      # additional level of obfuscation here to allow for us to continue on warnings
-      withCallingHandlers({
-
-        # cycle through our spline options
-        if(data_req){
-          survival::coxph(formula, data=data) %>% suppressMessages() -> current_model
-        }else{
-          survival::coxph(formula) %>% suppressMessages() -> current_model
-        }
-
-        # if model succeeds, collect information
-        current_aic <- stats::AIC(current_model)
-        current_bic <- stats::BIC(current_model)
-        current_ll <- current_model$loglik
-        dist_success<-T
-      },
-
-      # warnings are very common in flexsurv / optim, so if we get one, we conditionally print and continue
-      warning=function(w){
-        if(warn){message(paste('Warning in', current_dist,'model :',w))}
-        invokeRestart('muffleWarning')
-      })
-    },
-
-    # If the TryCatch errors, print out the error that occurred and continue
-    error=function(e){
-      message(paste("Error in", current_dist,"model :",e))
-    })
-
-    # If spline succeeds, we add, otherwise don't (prevents clutter)
-    dist_summary %>%
-      dplyr::add_row(
-        dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
-      ) -> dist_summary
-
-      # if we are model dumping, we assign the model to the global environment with name fssg_<model name>
-    if(dump_models & dist_success){
-      assign(paste('fssg_',current_dist,sep='',collapse=''), current_model, envir = .GlobalEnv) # fssg = flex surv shot gun
-    }
-
-    # close the cox tracker and print message
-    if(progress){
-      tictoc::toc(quiet =T)$callback_msg %>% message()
-    }
   }
 
   # garbage clean
