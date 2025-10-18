@@ -30,7 +30,7 @@ surv_shotgun <- function(
     progress=T,
     warn=F,
     spline=c('rp'),
-    max_knots=2,
+    max_knots=1,
     detailed=T,
     ibs=F,
     opt_method = 'BFGS'
