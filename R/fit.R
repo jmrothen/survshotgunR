@@ -59,7 +59,7 @@ get_fit_stats <- function(Surv_object, model, ibs=FALSE){
   # uno_c      <- survival::concordance(Surv_object ~ preds, timewt = 'n/G2')$concordance
 
   ### survAUC functions
-  uno_c_auc  <- tryCatch(survAUC::UnoC(Surv_object, Surv_object, lpnew = -preds)    , error=function(e){NA})
+  uno_c_auc  <- tryCatch(survAUC::UnoC(Surv_object, Surv_object, lpnew = -preds)    , error=function(e){NA})   # NOTE: WILL BE ZERO IF ALL PREDICTIONS EQUAL
   # iauc       <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times)$iauc, error=function(e){NA})
   iauc2      <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times_iqr)$iauc, error=function(e){NA})   # IQR version
   iauc3      <- tryCatch(survAUC::AUC.uno(Surv_object, Surv_object, lpnew = -preds, times = times_wide)$iauc, error=function(e){NA})  # Wider Version (10/90)
