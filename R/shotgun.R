@@ -6,15 +6,16 @@
 #'
 #' @param formula Formula. Should be a survival formula, with a Surv object on the left hand side.
 #' @param data If your formula needs a dataset, provide that here.
+#' @param models Vector of strings. If you only want to run specific models, specify them here by their list name in shotgun_dist_list.
 #' @param skip Vector. If you want to skip any specific models, you can add their names here. By default, some of the repetitive or incredibly niche models are skipped.
-#' @param dump_models Logical. If TRUE, each successful model created will be loaded into memory as fssg_<model_name>
-#' @param progress Logical. Want progress updates?
-#' @param warn Logical. If TRUE, also prints any warnings that appear.
+#' @param opt_method String. By default, 'BFGS' is used in flexsurvreg, however some distributions appreciate the more flexible 'Nelder-Mead' method. This is passed to the "optim" function as method = opt_method.
 #' @param spline Vector. Should include 'rp' for Royston-Parmar natural cubic spline. Can also include 'wy' for Wang-Yan alternative natural cubic spline. The Wang-Yan version requires the package 'splines2ns'.
 #' @param max_knots Integer. Specifies the maximum number of knots considered in spline models.
+#' @param dump_models Logical. If TRUE, each successful model will be placed into a list and returned by the function invisibly.
 #' @param detailed Logical. If True, calculates a number of additional fit statistics for each model.
 #' @param ibs Logical. If TRUE, calculate integrated brier score for each model. Please note that this greatly increases run time, and is not recommended for extremely large data.
-#' @param opt_method String. By default, 'BFGS' is used in flexsurvreg, however some distributions appreciate the more flexible 'Nelder-Mead' method. This is passed to the "optim" function as method = opt_method.
+#' @param progress Logical. Want progress updates?
+#' @param warn Logical. If TRUE, also prints any warnings that appear.
 #' @returns Data frame summarizing each model, and some general goodness of fit measures.
 #'
 #' @examples
@@ -25,15 +26,16 @@
 surv_shotgun <- function(
     formula,
     data=NA,
+    models=NA,
     skip=c('default'),
-    dump_models=F,
-    progress=T,
-    warn=F,
+    opt_method = 'BFGS',
     spline=c('rp'),
     max_knots=1,
-    detailed=T,
-    ibs=F,
-    opt_method = 'BFGS'
+    dump_models=TRUE,
+    detailed=TRUE,
+    ibs=FALSE,
+    progress=TRUE,
+    warn=FALSE
 ){
   # The default shotgun list will exclude the following. Comments describe why
   if(length(skip)==1 & skip[1]=='default'){
@@ -97,11 +99,25 @@ surv_shotgun <- function(
     loglik = 1
   )[-1,]
 
+  # If we want the additional fit stats, initiate them as well
   if(detailed){
     dist_summary <- dplyr::mutate(
       dist_summary,
       iAUC=1, Cindex=1, Unos.C=1, Brier.Median=1, MAE=1, IAE=1, ISE=1, IBS=1
     )
+  }
+
+  # create a simple list item which we will be packing all of the models into for returning
+  if(dump_models){
+    working_model_list <- list()
+  }
+
+
+  # if specific models were specified, then we can filter to those
+  if(!anyNA(models)){
+    if(any(models)){
+      dist_list <- dist_list[names(distlist) %in% models]
+    }
   }
 
   # iterate through each distribution, creating the model if possible and storing results
@@ -112,7 +128,7 @@ surv_shotgun <- function(
     custom_indicator <- !(current_dist %in% names(flexsurv::flexsurv.dists))
     current_source <- ifelse(custom_indicator, 'survshotgun','flexsurv')
 
-    # skip distribution if in our skip list
+    # skip distribution if in our skip list. This is done inside the loop to allow for broader matching of model names
     if(i$name %in% skip | dplyr::coalesce(i$fullname, i$name) %in% skip | names(dist_list)[iter] %in% skip){
       iter <- iter+1
       next
@@ -167,6 +183,12 @@ surv_shotgun <- function(
 
         dist_success<-T
 
+        # If we're interested in dumping the models, we pass the current model into the working model list
+        if(dump_models){
+          working_model_list[[current_dist]] <- current_model
+        }
+
+
         if(detailed){
         ### should add the case to pase Surv functions of the form Surv(time1, time2, status), which would use length(formula[[2]])
           if(data_req){
@@ -213,11 +235,6 @@ surv_shotgun <- function(
         dplyr::add_row(
           dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
         ) -> dist_summary
-    }
-
-    # if we are model dumping, we assign the model to the global environment with name fssg_<model name>
-    if(dump_models & dist_success){
-      assign(paste('fssg_',current_dist,sep='',collapse=''), current_model, envir = .GlobalEnv) # fssg = flex surv shot gun
     }
 
     # close the iteration tracker and print message
@@ -294,8 +311,13 @@ surv_shotgun <- function(
 
           dist_success<-T
 
+          # If we're interested in dumping the models, we pass the current model into the working model list
+          if(dump_models){
+            working_model_list[[current_dist]] <- current_model
+          }
+
           if(detailed){
-            ### should add the case to pase Surv functions of the form Surv(time1, time2, status), which would use length(formula[[2]])
+            ### should add the case to pass Surv functions of the form Surv(time1, time2, status), which would use length(formula[[2]])
             if(data_req){
               time_portion <-   dplyr::pull(data[c(as.character(formula[[2]][[2]]))])
               status_portion <- dplyr::pull(data[c(as.character(formula[[2]][[3]]))])
@@ -341,11 +363,6 @@ surv_shotgun <- function(
             dplyr::add_row(
               dist_name = current_dist, dist_source=current_source,  dist_ran=dist_success, aic=current_aic, bic=current_bic, loglik=current_ll
             ) -> dist_summary
-        }
-
-        # if we are model dumping, we assign the model to the global environment with name fssg_<model name>
-        if(dump_models & dist_success){
-          assign(paste('fssg_',current_dist,sep='',collapse=''), current_model, envir = .GlobalEnv) # fssg = flex surv shot gun
         }
       }
     }
@@ -435,6 +452,18 @@ surv_shotgun <- function(
   }else{
     dplyr::arrange(dist_summary, aic, bic, dplyr::desc(loglik)) -> out
   }
-  return(out)
+
+  # always print the summary information
+  print(out)
+
+  # Return the summary, and a list of models if the option is provided
+  if(dump_models){
+    invisible(list(
+      summary = out,
+      models = working_model_list
+    ))
+  }else{
+    invisible(out)
+  }
 }
 
