@@ -9,7 +9,7 @@
 #' @param models Vector of strings. If you only want to run specific models, specify them here by their list name in shotgun_dist_list.
 #' @param skip Vector. If you want to skip any specific models, you can add their names here. By default, some of the repetitive or incredibly niche models are skipped.
 #' @param opt_method String. By default, 'BFGS' is used in flexsurvreg, however some distributions appreciate the more flexible 'Nelder-Mead' method. This is passed to the "optim" function as method = opt_method.
-#' @param spline Vector. Should include 'rp' for Royston-Parmar natural cubic spline. Can also include 'wy' for Wang-Yan alternative natural cubic spline. The Wang-Yan version requires the package 'splines2ns'.
+#' @param spline Vector. Should include 'rp' for Royston-Parmar natural cubic spline. Can also include 'wy' for Wang-Yan alternative natural cubic spline. The Wang-Yan version requires the package 'splines2ns'. If set to NA, then the spline step will be skipped.
 #' @param max_knots Integer. Specifies the maximum number of knots considered in spline models.
 #' @param dump_models Logical. If TRUE, each successful model will be placed into a list and returned by the function invisibly.
 #' @param detailed Logical. If True, calculates a number of additional fit statistics for each model.
@@ -29,7 +29,7 @@ surv_shotgun <- function(
     models=NA,
     skip=c('default'),
     opt_method = 'BFGS',
-    spline=c('rp'),
+    spline=NA,   # c('rp', 'wy')
     max_knots=1,
     dump_models=TRUE,
     detailed=TRUE,
@@ -115,9 +115,7 @@ surv_shotgun <- function(
 
   # if specific models were specified, then we can filter to those
   if(!anyNA(models)){
-    if(any(models)){
-      dist_list <- dist_list[names(distlist) %in% models]
-    }
+    dist_list <- dist_list[names(dist_list) %in% models]
   }
 
   # iterate through each distribution, creating the model if possible and storing results
