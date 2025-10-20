@@ -48,7 +48,8 @@ surv_shotgun <- function(
       'chisq',                      # very rarely useful
       'non_central_chi_squared',    # very rarely useful
       'exponential',                # flexsurv's distribution list has 'exp','exponential', which are identical in practice. So we toss this one
-      'lognormal'                   # flexsurv's distribution list has 'lognormal','loggaussian', which are identical in practice. So we toss this one
+      'lognormal',                  # flexsurv's distribution list has 'lognormal','loggaussian', which are identical in practice. So we toss this one
+      'levy'                        # VGAM has functions, but theyre of an odd structure and not documented
     )
   }
 

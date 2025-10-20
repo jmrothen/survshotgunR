@@ -65,7 +65,7 @@ check_inits <- function(times, distribution){
       unique() %>%
       sort() -> time_vector
   }else{
-    times[,1] %>%
+    times %>%
       as.numeric() %>%
       unique() %>%
       sort() -> time_vector
@@ -340,7 +340,7 @@ shotgun_dist_list <- function(){
     location = ('ncp'),
     transforms = c(log,log,log),
     inv.transforms = c(exp,exp,exp),
-    inits=function(t){c(stats::median(t),2,0.1)},
+    inits=function(t){c(stats::median(t),2,0)},
     d=stats::df,
     p=stats::pf,
     h = hazardify(stats::df, stats::pf),
@@ -520,7 +520,7 @@ shotgun_dist_list <- function(){
     location='scale',
     transforms=c(identity, log),
     inv.transforms=c(identity, exp),
-    inits=function(t){c(0 - 2e-4, stats::median(t))},
+    inits=function(t){c(0, stats::median(t))},
     d=VGAM::dlevy,
     p=VGAM::plevy,
     h = hazardify(VGAM::dlevy, VGAM::plevy),
@@ -773,7 +773,7 @@ shotgun_dist_list <- function(){
     location= 'a',
     transforms= c(log,log),
     inv.transforms= c(exp,exp),
-    inits= function(t){c(1,1/mean(t))},
+    inits= function(t){c(1,.1)},
     d=dhypertab,
     p=phypertab,
     h = hazardify(dhypertab, phypertab),
@@ -787,7 +787,7 @@ shotgun_dist_list <- function(){
     location= 'b',
     transforms= c(log,log),
     inv.transforms= c(exp,exp),
-    inits= function(t){c(1,1/mean(t))},
+    inits= function(t){c(1,.1)},
     d=dhypertab,
     p=phypertab,
     h = hazardify(dhypertab, phypertab),

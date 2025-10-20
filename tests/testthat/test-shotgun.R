@@ -23,5 +23,5 @@ if(F){
   surv_shotgun(survival::Surv(time, status) ~ sex, data = survival::cancer, dump_models = T, warn = F) -> test_models4
 
   # more variables
-  surv_shotgun(survival::Surv(time, status) ~ age + sex, data = survival::cancer, dump_models = T, warn = F, spline=c('rp','wy'), ibs=F, max_knots=5) -> test_models5
+  surv_shotgun(survival::Surv(time, status) ~ age + sex, data = survival::cancer, dump_models = T, warn = F, spline=NA, ibs=F, max_knots=5, skip='NA') -> test_models5
 }
