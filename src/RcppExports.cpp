@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // derlang_c
 NumericVector derlang_c(NumericVector x, NumericVector k, NumericVector l, bool log);
-RcppExport SEXP _survshotgunR_derlang_c(SEXP xSEXP, SEXP kSEXP, SEXP lSEXP, SEXP logSEXP) {
+RcppExport SEXP _fssg_derlang_c(SEXP xSEXP, SEXP kSEXP, SEXP lSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -26,7 +26,7 @@ END_RCPP
 }
 // perlang_c
 NumericVector perlang_c(NumericVector x, NumericVector k, NumericVector l, bool lower_tail, bool log_p);
-RcppExport SEXP _survshotgunR_perlang_c(SEXP xSEXP, SEXP kSEXP, SEXP lSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
+RcppExport SEXP _fssg_perlang_c(SEXP xSEXP, SEXP kSEXP, SEXP lSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -41,7 +41,7 @@ END_RCPP
 }
 // dgamgomp_c
 NumericVector dgamgomp_c(NumericVector x, NumericVector b, NumericVector s, NumericVector beta, bool log);
-RcppExport SEXP _survshotgunR_dgamgomp_c(SEXP xSEXP, SEXP bSEXP, SEXP sSEXP, SEXP betaSEXP, SEXP logSEXP) {
+RcppExport SEXP _fssg_dgamgomp_c(SEXP xSEXP, SEXP bSEXP, SEXP sSEXP, SEXP betaSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -56,7 +56,7 @@ END_RCPP
 }
 // pgamgomp_c
 NumericVector pgamgomp_c(NumericVector x, NumericVector b, NumericVector s, NumericVector beta, bool lower_tail, bool log_p);
-RcppExport SEXP _survshotgunR_pgamgomp_c(SEXP xSEXP, SEXP bSEXP, SEXP sSEXP, SEXP betaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
+RcppExport SEXP _fssg_pgamgomp_c(SEXP xSEXP, SEXP bSEXP, SEXP sSEXP, SEXP betaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -72,7 +72,7 @@ END_RCPP
 }
 // dlogcauchy_c
 NumericVector dlogcauchy_c(NumericVector x, NumericVector mu, NumericVector sigma, bool log);
-RcppExport SEXP _survshotgunR_dlogcauchy_c(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP logSEXP) {
+RcppExport SEXP _fssg_dlogcauchy_c(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -86,7 +86,7 @@ END_RCPP
 }
 // plogcauchy_c
 NumericVector plogcauchy_c(NumericVector x, NumericVector mu, NumericVector sigma, bool lower_tail, bool log_p);
-RcppExport SEXP _survshotgunR_plogcauchy_c(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
+RcppExport SEXP _fssg_plogcauchy_c(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -101,7 +101,7 @@ END_RCPP
 }
 // dhypertab_c
 NumericVector dhypertab_c(NumericVector x, NumericVector a, NumericVector b, bool log);
-RcppExport SEXP _survshotgunR_dhypertab_c(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP, SEXP logSEXP) {
+RcppExport SEXP _fssg_dhypertab_c(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -115,7 +115,7 @@ END_RCPP
 }
 // phypertab_c
 NumericVector phypertab_c(NumericVector x, NumericVector a, NumericVector b, bool lower_tail, bool log_p);
-RcppExport SEXP _survshotgunR_phypertab_c(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
+RcppExport SEXP _fssg_phypertab_c(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -130,7 +130,7 @@ END_RCPP
 }
 // dinvlind_c
 NumericVector dinvlind_c(NumericVector x, NumericVector theta, bool log);
-RcppExport SEXP _survshotgunR_dinvlind_c(SEXP xSEXP, SEXP thetaSEXP, SEXP logSEXP) {
+RcppExport SEXP _fssg_dinvlind_c(SEXP xSEXP, SEXP thetaSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -143,7 +143,7 @@ END_RCPP
 }
 // pinvlind_c
 NumericVector pinvlind_c(NumericVector x, NumericVector theta, bool lower_tail, bool log_p);
-RcppExport SEXP _survshotgunR_pinvlind_c(SEXP xSEXP, SEXP thetaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
+RcppExport SEXP _fssg_pinvlind_c(SEXP xSEXP, SEXP thetaSEXP, SEXP lower_tailSEXP, SEXP log_pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -157,20 +157,20 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_survshotgunR_derlang_c", (DL_FUNC) &_survshotgunR_derlang_c, 4},
-    {"_survshotgunR_perlang_c", (DL_FUNC) &_survshotgunR_perlang_c, 5},
-    {"_survshotgunR_dgamgomp_c", (DL_FUNC) &_survshotgunR_dgamgomp_c, 5},
-    {"_survshotgunR_pgamgomp_c", (DL_FUNC) &_survshotgunR_pgamgomp_c, 6},
-    {"_survshotgunR_dlogcauchy_c", (DL_FUNC) &_survshotgunR_dlogcauchy_c, 4},
-    {"_survshotgunR_plogcauchy_c", (DL_FUNC) &_survshotgunR_plogcauchy_c, 5},
-    {"_survshotgunR_dhypertab_c", (DL_FUNC) &_survshotgunR_dhypertab_c, 4},
-    {"_survshotgunR_phypertab_c", (DL_FUNC) &_survshotgunR_phypertab_c, 5},
-    {"_survshotgunR_dinvlind_c", (DL_FUNC) &_survshotgunR_dinvlind_c, 3},
-    {"_survshotgunR_pinvlind_c", (DL_FUNC) &_survshotgunR_pinvlind_c, 4},
+    {"_fssg_derlang_c", (DL_FUNC) &_fssg_derlang_c, 4},
+    {"_fssg_perlang_c", (DL_FUNC) &_fssg_perlang_c, 5},
+    {"_fssg_dgamgomp_c", (DL_FUNC) &_fssg_dgamgomp_c, 5},
+    {"_fssg_pgamgomp_c", (DL_FUNC) &_fssg_pgamgomp_c, 6},
+    {"_fssg_dlogcauchy_c", (DL_FUNC) &_fssg_dlogcauchy_c, 4},
+    {"_fssg_plogcauchy_c", (DL_FUNC) &_fssg_plogcauchy_c, 5},
+    {"_fssg_dhypertab_c", (DL_FUNC) &_fssg_dhypertab_c, 4},
+    {"_fssg_phypertab_c", (DL_FUNC) &_fssg_phypertab_c, 5},
+    {"_fssg_dinvlind_c", (DL_FUNC) &_fssg_dinvlind_c, 3},
+    {"_fssg_pinvlind_c", (DL_FUNC) &_fssg_pinvlind_c, 4},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_survshotgunR(DllInfo *dll) {
+RcppExport void R_init_fssg(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

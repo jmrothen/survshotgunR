@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(survshotgunR)
+library(fssg)
 
-test_check("survshotgunR")
+test_check("fssg")

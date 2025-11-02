@@ -4,14 +4,14 @@
 \alias{pgamgomp}
 \title{Gamma-Gompertz Cumulative Distribution Function}
 \usage{
-pgamgomp(q, b, s, beta, lower.tail = TRUE, log.p = FALSE)
+pgamgomp(q, b, sigma, beta, lower.tail = TRUE, log.p = FALSE)
 }
 \arguments{
 \item{q}{vector of quantiles.}
 
 \item{b}{scale paramater, must be greater than 0.}
 
-\item{s, beta}{shape parameters, must be greater than 0.}
+\item{sigma, beta}{shape parameters, must be greater than 0.}
 
 \item{lower.tail}{logical: if TRUE, returns densities from 0 to q, otherwise q to 1.}
 

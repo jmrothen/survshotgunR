@@ -4,14 +4,14 @@
 \alias{dgamgomp}
 \title{Gamma-Gompertz Distribution Function}
 \usage{
-dgamgomp(x, b, s, beta, log = FALSE)
+dgamgomp(x, b, sigma, beta, log = FALSE)
 }
 \arguments{
 \item{x}{vector of quantiles.}
 
 \item{b}{scale paramater, must be greater than 0.}
 
-\item{s, beta}{shape parameters, must be greater than 0.}
+\item{sigma, beta}{shape parameters, must be greater than 0.}
 
 \item{log}{logical: if TRUE, log of probability is returned.}
 }

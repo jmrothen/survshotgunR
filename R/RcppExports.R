@@ -2,42 +2,42 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 derlang_c <- function(x, k, l, log = FALSE) {
-    .Call(`_survshotgunR_derlang_c`, x, k, l, log)
+    .Call(`_fssg_derlang_c`, x, k, l, log)
 }
 
 perlang_c <- function(x, k, l, lower_tail = TRUE, log_p = FALSE) {
-    .Call(`_survshotgunR_perlang_c`, x, k, l, lower_tail, log_p)
+    .Call(`_fssg_perlang_c`, x, k, l, lower_tail, log_p)
 }
 
 dgamgomp_c <- function(x, b, s, beta, log = FALSE) {
-    .Call(`_survshotgunR_dgamgomp_c`, x, b, s, beta, log)
+    .Call(`_fssg_dgamgomp_c`, x, b, s, beta, log)
 }
 
 pgamgomp_c <- function(x, b, s, beta, lower_tail = TRUE, log_p = FALSE) {
-    .Call(`_survshotgunR_pgamgomp_c`, x, b, s, beta, lower_tail, log_p)
+    .Call(`_fssg_pgamgomp_c`, x, b, s, beta, lower_tail, log_p)
 }
 
 dlogcauchy_c <- function(x, mu, sigma, log = FALSE) {
-    .Call(`_survshotgunR_dlogcauchy_c`, x, mu, sigma, log)
+    .Call(`_fssg_dlogcauchy_c`, x, mu, sigma, log)
 }
 
 plogcauchy_c <- function(x, mu, sigma, lower_tail = TRUE, log_p = FALSE) {
-    .Call(`_survshotgunR_plogcauchy_c`, x, mu, sigma, lower_tail, log_p)
+    .Call(`_fssg_plogcauchy_c`, x, mu, sigma, lower_tail, log_p)
 }
 
 dhypertab_c <- function(x, a, b, log = FALSE) {
-    .Call(`_survshotgunR_dhypertab_c`, x, a, b, log)
+    .Call(`_fssg_dhypertab_c`, x, a, b, log)
 }
 
 phypertab_c <- function(x, a, b, lower_tail = TRUE, log_p = FALSE) {
-    .Call(`_survshotgunR_phypertab_c`, x, a, b, lower_tail, log_p)
+    .Call(`_fssg_phypertab_c`, x, a, b, lower_tail, log_p)
 }
 
 dinvlind_c <- function(x, theta, log = FALSE) {
-    .Call(`_survshotgunR_dinvlind_c`, x, theta, log)
+    .Call(`_fssg_dinvlind_c`, x, theta, log)
 }
 
 pinvlind_c <- function(x, theta, lower_tail = TRUE, log_p = FALSE) {
-    .Call(`_survshotgunR_pinvlind_c`, x, theta, lower_tail, log_p)
+    .Call(`_fssg_pinvlind_c`, x, theta, lower_tail, log_p)
 }
 
