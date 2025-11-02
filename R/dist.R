@@ -17,6 +17,12 @@
 # }
 
 
+### Important note: flexsurv by default only varies one model parameter (what is specified in the distributions as location)
+# We can make more than one parameter vary though, using the anc parameter in flexsurvreg
+# Example: anc = list(shape1 = ~ var1 + var2, shape2 = ~ var3)
+# It may be worth adding in some anc options in the dist-list...
+
+
 
 ### Function-Factory
 # Couple of functions that extrapolate the S, h, and H functions based on pdf/cdf
@@ -59,7 +65,7 @@ cumhazardify <- function(p_func){
 #' @export
 check_inits <- function(times, distribution){
   # accepts a vector or Surv object
-  if(class(times)=='Surv'){
+  if(methods::is(times,'Surv')){
     times[,1] %>%
       as.numeric() %>%
       unique() %>%
@@ -89,7 +95,7 @@ check_inits <- function(times, distribution){
 
   for(i in 1:length(time_vector)){
     as.list(c(time_vector[i], inits)) %>%
-      setNames(c(arguments)) %>%
+      stats::setNames(c(arguments)) %>%
       do.call(what=dfunc, args=.) -> dataframe$p[i]
 
     dataframe$s[i] <- is.finite(dataframe$p[i])
@@ -99,7 +105,7 @@ check_inits <- function(times, distribution){
     message("Found some weird entries")
 
     dataframe %>%
-      filter(s=F) %>%
+      dplyr::filter(s=F) %>%
       print()
   }else{
     message("Works at every time point!")
