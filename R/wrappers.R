@@ -16,6 +16,8 @@ derlang <- function(x, k, l, log = FALSE) {
   return(derlang_c(x, k, l, log))
 }
 
+
+
 #' Erlang Cumulative Density Function
 #'
 #' Provides the cumulative density function at point q for an erlang distribution of parameters k and lambda. X, k, and l can be vectors.
@@ -55,6 +57,7 @@ perlang <- function(q, k, l, lower.tail = TRUE, log.p = FALSE) {
 dgamgomp <- function(x, b, sigma, beta, log = FALSE) {
   return(dgamgomp_c(x, b, sigma, beta, log))
 }
+
 
 
 #' Gamma-Gompertz Cumulative Distribution Function
@@ -97,6 +100,8 @@ dlogcauchy <- function(x, mu, sigma, log = FALSE) {
   return(dlogcauchy_c(x, mu, sigma, log))
 }
 
+
+
 #' Log Cauchy Cumulative Distribution Functions
 #'
 #' Provides cumulative distribution function for Log Cauchy distribution.
@@ -117,6 +122,7 @@ plogcauchy <- function(q, mu, sigma, lower.tail = TRUE, log.p = FALSE) {
 }
 
 
+
 #' Hypertabastic Distribution Function
 #'
 #' Provides probability distribution function for Hypertabastic distribution.
@@ -134,6 +140,7 @@ plogcauchy <- function(q, mu, sigma, lower.tail = TRUE, log.p = FALSE) {
 dhypertab <- function(x, a, b, log = FALSE) {
   return(dhypertab_c(x, a, b, log))
 }
+
 
 
 #' Hypertabastic Cumulative Distribution Function
@@ -156,6 +163,7 @@ phypertab <- function(q, a, b, lower.tail = TRUE, log.p = FALSE) {
 }
 
 
+
 #' Inverse Lindley Distribution Function
 #'
 #' Providers probability distribution function for Inverse Lindley distribution.
@@ -172,6 +180,8 @@ phypertab <- function(q, a, b, lower.tail = TRUE, log.p = FALSE) {
 dinvlind <- function(x, theta, log = FALSE) {
   return(dinvlind_c(x, theta, log))
 }
+
+
 
 #' Inverse Lindley Distribution Function
 #'
@@ -190,4 +200,3 @@ dinvlind <- function(x, theta, log = FALSE) {
 pinvlind <- function(q, theta, lower.tail = TRUE, log.p = FALSE) {
   return(pinvlind_c(q, theta, lower.tail, log.p))
 }
-

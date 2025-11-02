@@ -1,9 +1,9 @@
-Package: survshotgunR
-Title: What the Package Does (One Line, Title Case)
+Package: fssg
+Title: Flexsurv Shotgun 
 Version: 0.0.0.9000
 Author: John Rothen
 Maintainer: John Rothen <jmrothen.business@gmail.com>
-Description: What the package does (one paragraph).
+Description: Test a wide variety of parametric survival models to see which best suits your data.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

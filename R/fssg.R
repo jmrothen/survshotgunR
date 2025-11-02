@@ -1,12 +1,10 @@
-## This script contains the primary survival-shotgun function
+## This script contains the primary fssg function
 
-
-
-#' Shotgun
+#' FSSG: Flexsurv Shotgun.
 #'
 #' @param formula Formula. Should be a survival formula, with a Surv object on the left hand side.
 #' @param data If your formula needs a dataset, provide that here.
-#' @param models Vector of strings. If you only want to run specific models, specify them here by their list name in shotgun_dist_list.
+#' @param models Vector of strings. If you only want to run specific models, specify them here by their list name in fssg_dist_list.
 #' @param skip Vector. If you want to skip any specific models, you can add their names here. By default, some of the repetitive or incredibly niche models are skipped.
 #' @param opt_method String. By default, 'BFGS' is used in flexsurvreg, however some distributions appreciate the more flexible 'Nelder-Mead' method. This is passed to the "optim" function as method = opt_method.
 #' @param spline Vector. Should include 'rp' for Royston-Parmar natural cubic spline. Can also include 'wy' for Wang-Yan alternative natural cubic spline. The Wang-Yan version requires the package 'splines2ns'. If set to NA, then the spline step will be skipped.
@@ -16,14 +14,14 @@
 #' @param ibs Logical. If TRUE, calculate integrated brier score for each model. Please note that this greatly increases run time, and is not recommended for extremely large data.
 #' @param progress Logical. Want progress updates?
 #' @param warn Logical. If TRUE, also prints any warnings that appear.
-#' @returns Data frame summarizing each model, and some general goodness of fit measures.
+#' @returns List containing a summary of the models generated. If dump_models is True, also returns a list of generated models.
 #'
 #' @examples
 #' library(survival)
-#' surv_shotgun(Surv(time, status)~1, data=aml, dump_models=TRUE, warn = TRUE)
+#' fssg(Surv(time, status)~1, data=aml, dump_models=TRUE, warn = TRUE)
 #'
 #' @export
-surv_shotgun <- function(
+fssg <- function(
     formula,
     data=NA,
     models=NA,
@@ -37,7 +35,7 @@ surv_shotgun <- function(
     progress=TRUE,
     warn=FALSE
 ){
-  # The default shotgun list will exclude the following. Comments describe why
+  # The default distribution list will exclude the following. Comments describe why
   if(length(skip)==1 & skip[1]=='default'){
     skip <- c(
       'weibullPH',                  # identical to other weibull
@@ -53,8 +51,8 @@ surv_shotgun <- function(
     )
   }
 
-  message("Loading shotgun...")
-  tictoc::tic("Kapow") # overall timer
+  message("Beginning...")
+  tictoc::tic("Kapow!") # overall timer
 
   # parsing / verifying the provided formula
   vars <- all.vars(formula)
@@ -88,7 +86,7 @@ surv_shotgun <- function(
   }
 
   # grab list of all available distributions
-  dist_list <- shotgun_dist_list()
+  dist_list <- fssg_dist_list()
 
   # initialize a quick dataframe which we'll update with each iteration
   dist_summary <- data.frame(
@@ -125,7 +123,7 @@ surv_shotgun <- function(
 
     current_dist <- names(dist_list)[iter]
     custom_indicator <- !(current_dist %in% names(flexsurv::flexsurv.dists))
-    current_source <- ifelse(custom_indicator, 'survshotgun','flexsurv')
+    current_source <- ifelse(custom_indicator, 'fssg','flexsurv')
 
     # skip distribution if in our skip list. This is done inside the loop to allow for broader matching of model names
     if(i$name %in% skip | dplyr::coalesce(i$fullname, i$name) %in% skip | names(dist_list)[iter] %in% skip){

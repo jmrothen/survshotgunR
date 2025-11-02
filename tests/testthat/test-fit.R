@@ -1,7 +1,7 @@
 test_that("Fit stats seem to work",{
   expect_equal(
     {
-      shotgun_dist_list()$lindley -> testdist
+      fssg_dist_list()$lindley -> testdist
       flexsurv::flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist, dfns = list(d=testdist$d, p=testdist$p)) -> testmodel
       get_fit_stats(survival::Surv(survival::cancer$time, survival::cancer$status), model = testmodel, ibs = F) -> statlist
       for(i in 1:length(statlist)){
@@ -36,9 +36,9 @@ test_that("Fit stats seem to work",{
 
 # if(F){
 #   ### MODEL PREP
-#   shotgun_dist_list()$lindley -> testdist
-#   shotgun_dist_list()$fatigue -> testdist2
-#   shotgun_dist_list()$gompertz -> testdist3
+#   fssg_dist_list()$lindley -> testdist
+#   fssg_dist_list()$fatigue -> testdist2
+#   fssg_dist_list()$gompertz -> testdist3
 #
 #   flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist, dfns = list(d=testdist$d, p=testdist$p)) -> pp4
 #   flexsurvreg(survival::Surv(time,status) ~age +sex, data=survival::cancer, dist= testdist2, dfns = list(d=testdist2$d, p=testdist2$p)) -> pp5

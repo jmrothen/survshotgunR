@@ -89,32 +89,32 @@ test_that("extra distribution functions work",{
 # simple checks about the distribution function
 test_that("Distribution list runs",{
   expect_type(
-    shotgun_dist_list(),
+    fssg_dist_list(),
     'list'
   )
   expect_gt(
-    length(shotgun_dist_list()),
+    length(fssg_dist_list()),
     50
   )
 })
 
 
-# tests for accessing attributes of the elements within shotgun_dist_list
+# tests for accessing attributes of the elements within fssg_dist_list
 test_that("Distribution list items works", {
   expect_equal(
-    shotgun_dist_list()[[1]]$name, 'genf'
+    fssg_dist_list()[[1]]$name, 'genf'
   )
   expect_equal(
-    shotgun_dist_list()$genf$location, 'mu'
+    fssg_dist_list()$genf$location, 'mu'
   )
   expect_equal(
-    round(shotgun_dist_list()$lindley$inits(c(1,2,3,4,5)),7), round(0.3333333,7)
+    round(fssg_dist_list()$lindley$inits(c(1,2,3,4,5)),7), round(0.3333333,7)
   )
   expect_equal(
-    shotgun_dist_list()$lindley$d(1,2), VGAM::dlind(1,2)
+    fssg_dist_list()$lindley$d(1,2), VGAM::dlind(1,2)
   )
   expect_equal(
-    shotgun_dist_list()$lindley$h(1,2) ,
+    fssg_dist_list()$lindley$h(1,2) ,
     {
       hazardify(VGAM::dlind, VGAM::plind) -> hlind
       hlind(1,2)
@@ -122,6 +122,6 @@ test_that("Distribution list items works", {
   )
   expect_in(
     c('lindley', 'genf','weibull','gamgomp'),
-    names(shotgun_dist_list())
+    names(fssg_dist_list())
   )
 })

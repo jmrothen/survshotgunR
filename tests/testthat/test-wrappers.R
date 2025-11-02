@@ -209,6 +209,7 @@ test_that("Log and Tail works", {
     dinvlind(1,1,T)
   )
 
+
   # ps
   expect_equal(
     log(perlang(1,1,1)),
@@ -231,6 +232,7 @@ test_that("Log and Tail works", {
     pinvlind(1,1,log.p=T)
   )
 
+
   # tails
   expect_equal(
     1-perlang(1,1,1),
@@ -252,6 +254,7 @@ test_that("Log and Tail works", {
     1-pinvlind(1,1),
     pinvlind(1,1,F)
   )
+
 
   # tail and log
   expect_equal(

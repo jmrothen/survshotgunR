@@ -3,16 +3,16 @@
 #   custom_model <- list(
 #     name = '',               # this should be the shortened name that appears after d/p in the distribution functions i.e. "norm" in dnorm
 #     pars = c('','',''),      # a vector of each parameter name, exactly as they are stated in the d/p functions i.e c('mean','sd') for norm
-#     location= c(),           # IMPORTANT: specifies which parameters should vary based on the covarites in the model. Can usually omit shape /
+#     location= c(),           # IMPORTANT: specifies which parameters should vary based on the covariates in the model. Can usually omit shape /
 #                              #  true-locations (like minimum or boundary parameters). This also is a key part of specifying AFT/PH interpretation of your model
 #     transforms = c(),        # a vector of functions, one for each parameter, that transform the respective parameter into the real line. If param1 must be >0, log(param1) would be real
 #     inv.transforms=c(),      # a vector of functions which transform the real values back to the original scale. exp(log(param1) returns to the original range of param1
 #     inits = function(t){},   # a declared function which takes the time variable, and outputs initial estimates for the parameters. Ideally, estimates are based off of t somehow, but can be simple ints
-#     p = pdist,               # by default, flexsurv looks for the d/p functions using the <name> object above, but the shotgun function will use these declared p/d's instead
+#     p = pdist,               # by default, flexsurv looks for the d/p functions using the <name> object above, but the fssg function will use these declared p/d's instead
 #     d = ddist,               #
 #     h = hdist,               # May as well include the hazard functions as well!
 #     H = Hdist,               #
-#     fullname = ''            # this longer name is used in shotgun to better label the distribution in outputs and console tracking
+#     fullname = ''            # this longer name is used in fssg to better label the distribution in outputs and console tracking
 #   )
 # }
 
@@ -54,7 +54,7 @@ cumhazardify <- function(p_func){
 #' Function to check if times can be calculated using the distribution with default inits.
 #'
 #' @param times Surv object or numeric vector.
-#' @param distribution A distribution object from shotgun_dist_lists.
+#' @param distribution A distribution object from fssg_dist_lists.
 #' @returns Boolean indicator for success. If true, then all values can be calculated, and life is good.
 #' @export
 check_inits <- function(times, distribution){
@@ -122,7 +122,7 @@ check_inits <- function(times, distribution){
 #' @returns a list of all possible distributions
 #'
 #' @export
-shotgun_dist_list <- function(){
+fssg_dist_list <- function(){
   # create a list item for each currently available distribution
 
   ### Beta Prime
