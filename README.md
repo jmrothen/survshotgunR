@@ -1,5 +1,5 @@
 
-# fssg: Flexsurv Shotgun Approach
+# fssg: Flexsurv "Shotgun" Approach
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -12,7 +12,7 @@ This is done by running 60+ different parametric survival curves in order to see
 You can install the development version of fssg like so:
 
 ``` r
-devtools::install_github('jmrothen/survshotgunR')
+devtools::install_github('jmrothen/fssg')
 ```
 
 ## Example
@@ -20,11 +20,11 @@ devtools::install_github('jmrothen/survshotgunR')
 The package is designed to be mostly contained to one function, fssg. Simply provide a survival formula, and receive a table of each model run, and how it fits:
 
 ``` r
-library(survshotgunR)
+library(fssg)
 
 # sample dataset available in <survival>
 library(survival)
-surv_shotgun(Surv(time, status)~1, data=aml, dump_models = TRUE)
+fssg(Surv(time, status)~1, data=aml, dump_models = TRUE)
 
 ```
 
